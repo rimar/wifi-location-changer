@@ -5,7 +5,7 @@
 Simplified location changer based on http://tech.inhelsinki.nl/locationchanger/
 
 ##Installation
-Edit location changer and change _ninja_ to your SSID
+Edit locationchanger and change _ninja_ to your SSID
 
     cp locationchanger /usr/local/bin
     cp LocationChanger.plist ~/Library/LaunchAgents/
