@@ -1,22 +1,82 @@
 #!/bin/bash
 
 # automatically change configuration of Mac OS X based on location
+# author: Rocco Georgi <rocco@pavingways.com>
+# version: 0.1 (stripped down version)
+
+# original author: Onne Gorter <o.gorter@gmail.com>
+# url: http://tech.inhelsinki.nl/locationchanger/
+# version: 0.4
 
 # redirect all IO to /dev/null (comment this out if you want to debug)
-# exec 1>/dev/null 2>/dev/null
+#exec 1>/dev/null 2>/dev/null
+exec &>/usr/local/var/log/locationchanger.log
+
+# set a logfile location
+LOGFILE=`/usr/local/var/log/locationchanger.log`
 
 # get a little breather before we get data for things to settle down
 sleep 2
 
-# get various system information
-SSID=`/System/Library/PrivateFrameworks/Apple80211.framework/Versions/A/Resources/airport -I\
- | grep ' SSID:' | cut -d ':' -f 2 | tr -d ' '`
+# get SSID
+SSID=`/System/Library/PrivateFrameworks/Apple80211.framework/Versions/A/Resources/airport -I | grep ' SSID:' | cut -d ':' -f 2 | tr -d ' '`
 
-HOME_SSID=ninja
+echo `date` "New SSID found: $SSID"
 
-if [ "$SSID" = "$HOME_SSID" ]; then
-  scselect home
-else
-  scselect auto
+LOCATION=
+
+# locations (use to be used Location name here)
+ATAutomatic="Automatic"
+ATTelekomIntra="Telekom Intra"
+
+# detect Automatic
+ATAutomatic_SSID=Telekom
+
+# detect PW
+ATPW_SSID=PW
+
+# detect Telekom Intra
+ATTelekomIntra_SSID=TeIekom
+
+# set network location name depending on SSID
+if [ -z "$LOCATION" ]; then
+	case $SSID in
+		$ATAutomatic_SSID	) LOCATION="$ATAutomatic";;
+		$ATPW_SSID	) LOCATION="$ATAutomatic";;
+		$ATTelekomIntra_SSID	) LOCATION="$ATTelekomIntra";;
+	esac
+        REASON="SSID changed to $SSID"
 fi
 
+# still didn't get a location, so do automatic
+if [ -z "$LOCATION" ]; then
+	LOCATION="$ATAutomatic"
+        REASON="Automatic Fallback"
+fi
+
+# change network location
+scselect "$LOCATION"
+
+case $LOCATION in
+	$ATAutomatic )
+		#lpoptions -d "Work Printer"
+		
+		# get some time to figure ip addresses out ...
+		#sleep 10
+		
+		# authenticate on hotspot
+		#wget -O $LOGFILE --no-check-certificate "https://hotspot.t-mobile.net/wlan/index.do?username=yourmother&password=yeahright&strAGB=AGB&strHinweis=Zahlungsbedingungen"
+	;;
+	
+	$ATPW_SSID )
+		# nothing special here
+	;;
+	
+	$ATTelekomIntra )
+		# nothing special here
+	;;
+esac
+
+echo "$REASON -> Location: $LOCATION"
+
+exit 0
