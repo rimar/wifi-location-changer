@@ -1,31 +1,68 @@
 #Wi-Fi Location Changer
 
-* Automatically changes the network location when Wi-Fi connection SSID changes in Mac OSX
+* Automatically changes the Mac OSX network location when Wi-Fi connection SSID changes
 * Allows having different IP settings depending on the Wi-Fi SSID
 
-Based on http://tech.inhelsinki.nl/locationchanger/
+Based on http://tech.inhelsinki.nl/locationchanger/ <br>
 Forked from https://github.com/rimar/wifi-location-changer/
 
-Mountain Lion compatible, Lion too (pretty sure also Snow Leopard and before)
+Mountain Lion compatible
+
+##Configuration
+
+Edit locationchanger and change/add locations to be set:
+
+	# LOCATIONS 
+	Location_Automatic="Automatic"
+	Location_CompanyIntra="Company Intranet"
+
+*That's the exact names as they appear under "Location" in OSX's System Preferences -> Network*
+
+Edit locationchanger and add/edit SSIDS to be detected:
+
+	# SSIDS
+	SSID_TelekomPublic=Telekom
+	SSID_Home=PW
+	SSID_CompanyIntra=CompanyIntraSSID
+
+Edit/Add SSID -> LOCATION mapping to list:
+
+	# SSID -> LOCATION mapping
+	case $SSID in
+		$SSID_TelekomPublic ) LOCATION="$Location_Automatic";;
+		$SSID_Home          ) LOCATION="$Location_Automatic";;
+		$SSID_CompanyIntra  ) LOCATION="$Location_CompanyIntra";;
+		# ... add more here
 
 ##Installation
-Edit locationchanger and change the configuration array like this
 
-    locations['My_SSID_home'] = 'At Home'
-    locations['My_SSID_work'] = 'At Work'
-	locations['My_SSID_bar']  = 'At the Bar'
+Execute:
 
-Copy these files (change paths as needed)
+	./install
+	
+... or do it manually:
 
-    cp locationchanger /usr/local/bin
-    cp LocationChanger.plist ~/Library/LaunchAgents/
-    launchctl load ~/Library/LaunchAgents/LocationChanger.plist
+Copy these files:
 
-##Customization
-Logfile location
+	cp locationchanger /usr/local/bin
+	cp LocationChanger.plist ~/Library/LaunchAgents/
 
-    tail -f /usr/local/var/log/locationchanger.log
+Should you place the locationchanger script to another location, make sure you edit the path in LocationChanger.plist too.
 
-##ToDos
+Make locationchanger script executable:
 
-- Arrays for Config: locations['SSID'] = 'something': http://tldp.org/LDP/abs/html/arrays.html
+	chmod +x /usr/local/bin/locationchanger
+
+Load LocationChanger.plist as a launchd daemon:
+
+	launchctl load ~/Library/LaunchAgents/LocationChanger.plist
+
+##Logfile
+
+Logfile location can be adjusted in locationchanger:
+
+	exec &>/usr/local/var/log/locationchanger.log
+
+See log in action:
+
+	tail -f /usr/local/var/log/locationchanger.log
