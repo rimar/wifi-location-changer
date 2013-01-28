@@ -2,81 +2,68 @@
 
 # automatically change configuration of Mac OS X based on location
 # author: Rocco Georgi <rocco@pavingways.com>
-# version: 0.1 (stripped down version)
+# version: 0.3 (working version)
 
 # original author: Onne Gorter <o.gorter@gmail.com>
 # url: http://tech.inhelsinki.nl/locationchanger/
 # version: 0.4
 
-# redirect all IO to /dev/null (comment this out if you want to debug)
-#exec 1>/dev/null 2>/dev/null
+# redirect all IO to a logfile
 exec &>/usr/local/var/log/locationchanger.log
-
-# set a logfile location
-LOGFILE=`/usr/local/var/log/locationchanger.log`
+# redirect all IO to /dev/null (comment this in if you don#t want to write to logfile)
+#exec 1>/dev/null 2>/dev/null
 
 # get a little breather before we get data for things to settle down
 sleep 2
 
 # get SSID
 SSID=`/System/Library/PrivateFrameworks/Apple80211.framework/Versions/A/Resources/airport -I | grep ' SSID:' | cut -d ':' -f 2 | tr -d ' '`
-
 echo `date` "New SSID found: $SSID"
 
+# empty location var
 LOCATION=
 
 # locations (use to be used Location name here)
-ATAutomatic="Automatic"
-ATTelekomIntra="Telekom Intra"
+# =============================================
+Location_Automatic="Automatic"
+Location_CompanyIntra="Company Intranet"
 
-# detect Automatic
-ATAutomatic_SSID=Telekom
+# SSIDs
+# =====
+SSID_TelekomPublic=Telekom
+SSID_Home=PW
+SSID_CompanyIntra=CompanyIntraSSID
 
-# detect PW
-ATPW_SSID=PW
 
-# detect Telekom Intra
-ATTelekomIntra_SSID=TeIekom
-
-# set network location name depending on SSID
+# map SSID to network location
 if [ -z "$LOCATION" ]; then
 	case $SSID in
-		$ATAutomatic_SSID	) LOCATION="$ATAutomatic";;
-		$ATPW_SSID	) LOCATION="$ATAutomatic";;
-		$ATTelekomIntra_SSID	) LOCATION="$ATTelekomIntra";;
+		$SSID_TelekomPublic ) LOCATION="$Location_Automatic";;
+		$SSID_Home          ) LOCATION="$Location_Automatic";;
+		$SSID_CompanyIntra  ) LOCATION="$Location_CompanyIntra";;
 	esac
-        REASON="SSID changed to $SSID"
+		REASON="SSID changed to $SSID"
 fi
 
-# still didn't get a location, so do automatic
+# still didn't get a location -> use Location_Automatic
 if [ -z "$LOCATION" ]; then
-	LOCATION="$ATAutomatic"
-        REASON="Automatic Fallback"
+	LOCATION="$Location_Automatic"
+	REASON="Automatic Fallback"
 fi
 
 # change network location
 scselect "$LOCATION"
 
 case $LOCATION in
-	$ATAutomatic )
-		#lpoptions -d "Work Printer"
-		
-		# get some time to figure ip addresses out ...
-		#sleep 10
-		
-		# authenticate on hotspot
-		#wget -O $LOGFILE --no-check-certificate "https://hotspot.t-mobile.net/wlan/index.do?username=yourmother&password=yeahright&strAGB=AGB&strHinweis=Zahlungsbedingungen"
+	$Location_Automatic )
+		# do stuff here you would do in Location_Automatic
 	;;
 	
-	$ATPW_SSID )
-		# nothing special here
-	;;
-	
-	$ATTelekomIntra )
+	$Location_CompanyIntra )
 		# nothing special here
 	;;
 esac
 
-echo "$REASON -> Location: $LOCATION"
+echo "--> Location Changer: $LOCATION - $REASON"
 
 exit 0
