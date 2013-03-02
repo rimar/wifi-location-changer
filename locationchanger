@@ -12,11 +12,22 @@ sleep 2
 SSID=`/System/Library/PrivateFrameworks/Apple80211.framework/Versions/A/Resources/airport -I\
  | grep ' SSID:' | cut -d ':' -f 2 | tr -d ' '`
 
-HOME_SSID=ninja
+# basic pattern matching to get all location names separated by newlines
+LOCATION_NAMES=`scselect | tail -n +2 | cut -d "(" -f 2 | cut -d ")" -f 1`
 
-if [ "$SSID" = "$HOME_SSID" ]; then
-  scselect home
+# no brackets as we the grep will return a status code depending on whether the SSID has an own Location
+if echo "$LOCATION_NAMES" | grep -q "$SSID"; then
+  scselect "$SSID"
 else
-  scselect auto
+  # auto does not seem to be working on Mac OS X Lion, but Automatic does
+  if echo Automatic | grep -q "$LOCATION_NAMES"; then
+    scselect Automatic
+  elif echo auto | grep -q "$LOCATION_NAMES"; then
+    scselect auto
+  else
+    echo "Automatic location was not found!"
+    echo "The following locations are known:"
+    echo "$LOCATION_NAMES"
+  fi
 fi
 
