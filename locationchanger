@@ -14,20 +14,26 @@ SSID=`/System/Library/PrivateFrameworks/Apple80211.framework/Versions/A/Resource
 
 # basic pattern matching to get all location names separated by newlines
 LOCATION_NAMES=`scselect | tail -n +2 | cut -d "(" -f 2 | cut -d ")" -f 1`
+CURRENT_LOCATION=`scselect | grep " \* " | cut -d "(" -f 2 | cut -d ")" -f 1`
 
 # no brackets as we the grep will return a status code depending on whether the SSID has an own Location
 if echo "$LOCATION_NAMES" | grep -q "$SSID"; then
-  scselect "$SSID"
+  NEW_LOCATION="$SSID"
 else
   # auto does not seem to be working on Mac OS X Lion, but Automatic does
   if echo Automatic | grep -q "$LOCATION_NAMES"; then
-    scselect Automatic
+    NEW_LOCATION=Automatic
   elif echo auto | grep -q "$LOCATION_NAMES"; then
-    scselect auto
+    NEW_LOCATION=auto
   else
     echo "Automatic location was not found!"
     echo "The following locations are known:"
     echo "$LOCATION_NAMES"
   fi
+fi
+
+if [ "x$NEW_LOCATION" != "x" -a "x$NEW_LOCATION" != "x$CURRENT_LOCATION" ]; then
+    echo "Changing to $NEW_LOCATION"
+    scselect "$NEW_LOCATION"
 fi
 
