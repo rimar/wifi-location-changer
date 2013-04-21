@@ -11,7 +11,7 @@
   </array>
   <key>WatchPaths</key>
   <array>
-    <string>/Library/Preferences/SystemConfiguration</string>
+      <string>/Library/Preferences/SystemConfiguration/preferences.plist</string>
   </array>
 </dict>
 </plist>
