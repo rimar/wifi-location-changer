@@ -13,3 +13,7 @@ Note: location name should be the same as the name of SSID
     cp LocationChanger.plist ~/Library/LaunchAgents/
     launchctl load ~/Library/LaunchAgents/LocationChanger.plist
 
+or
+
+    ./install
+

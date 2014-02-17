@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # automatically change configuration of Mac OS X based on location
-
+exec &>/usr/local/var/log/locationchanger.log
 # redirect all IO to /dev/null (comment this out if you want to debug)
 # exec 1>/dev/null 2>/dev/null
 
