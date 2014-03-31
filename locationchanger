@@ -17,7 +17,7 @@ LOCATION_NAMES=`scselect | tail -n +2 | cut -d "(" -f 2 | cut -d ")" -f 1`
 CURRENT_LOCATION=`scselect | grep " \* " | cut -d "(" -f 2 | cut -d ")" -f 1`
 
 # no brackets as we the grep will return a status code depending on whether the SSID has an own Location
-if echo "$LOCATION_NAMES" | grep -q "$SSID"; then
+if echo "$LOCATION_NAMES" | egrep -q "^$SSID$"; then
   NEW_LOCATION="$SSID"
 else
   # auto does not seem to be working on Mac OS X Lion, but Automatic does
