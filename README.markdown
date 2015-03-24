@@ -7,7 +7,9 @@
 Simplified location changer based on http://tech.inhelsinki.nl/locationchanger/
 
 ##Installation
-Note: location name should be the same as the name of SSID
+Note: location name should be the same as the name of SSID with all spaces removed. 
+
+For example: **SSID**: ```My WiFi Hotspot``` Will translate to **Location Name**: ```MyWiFiHotspot``` 
 
     cp locationchanger /usr/local/bin
     cp LocationChanger.plist ~/Library/LaunchAgents/
