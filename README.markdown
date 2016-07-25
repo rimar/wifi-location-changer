@@ -15,3 +15,7 @@ For example: **SSID**: ```My WiFi Hotspot``` Will translate to **Location Name**
     cp LocationChanger.plist ~/Library/LaunchAgents/
     launchctl load ~/Library/LaunchAgents/LocationChanger.plist
 
+or
+
+    ./install
+
