@@ -1,6 +1,7 @@
 #!/bin/bash
 sudo mkdir /usr/local/var/log
 sudo cp locationchanger /usr/local/bin
+cp .locationchanger ~/
 cp LocationChanger.plist ~/Library/LaunchAgents/
 launchctl unload ~/Library/LaunchAgents/LocationChanger.plist
 launchctl load ~/Library/LaunchAgents/LocationChanger.plist
