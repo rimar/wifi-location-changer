@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/local/bin/bash
 
 # automatically change configuration of Mac OS X based on location
 exec &>/usr/local/var/log/locationchanger.log
@@ -6,34 +6,63 @@ exec &>/usr/local/var/log/locationchanger.log
 # exec 1>/dev/null 2>/dev/null
 
 # get a little breather before we get data for things to settle down
-sleep 2
+sleep 1 
 
 # get various system information
 SSID=`/System/Library/PrivateFrameworks/Apple80211.framework/Versions/A/Resources/airport -I\
  | grep ' SSID:' | cut -d ':' -f 2 | tr -d ' '`
 
-# basic pattern matching to get all location names separated by newlines
-LOCATION_NAMES=`scselect | tail -n +2 | cut -d "(" -f 2 | cut -d ")" -f 1`
 CURRENT_LOCATION=`scselect | grep " \* " | cut -d "(" -f 2 | cut -d ")" -f 1`
 
-# no brackets as we the grep will return a status code depending on whether the SSID has an own Location
-if echo "$LOCATION_NAMES" | egrep -q "^$SSID$"; then
-  NEW_LOCATION="$SSID"
+# get a map of SSID -> locations from ~/.locationchanger
+# The file should contain lines with comma-separated SSID,Location values
+# A default value can be specified using the *** SSID, for example:
+#    ***,Internet
+#    SAP-Corporate,Corporate
+#    Home Network,Home
+
+declare -A NETWORK_LOCATIONS
+while IFS=, read -r net loc; do NETWORK_LOCATIONS[$net]=$loc; done < ~/.locationchanger
+
+LOOKUP_LOCATION=${NETWORK_LOCATIONS[$SSID]}
+DEFAULT_LOCATION=${NETWORK_LOCATIONS["***"]}
+
+# is our SSID in the map of lookup locations...
+if [[ -n $LOOKUP_LOCATION ]]; then
+  NEW_LOCATION="$LOOKUP_LOCATION"
+
+# ...or if we have a non-empty default location...
+elif [[ -n $DEFAULT_LOCATION ]]; then
+  echo "Choosing default location: $DEFAULT_LOCATION"
+  NEW_LOCATION="$DEFAULT_LOCATION"
+
+# ...else we'll try to match the SSID and location names, e.g. SSID "My Network" matches location "MyNetwork"
 else
-  # auto does not seem to be working on Mac OS X Lion, but Automatic does
-  if echo Automatic | grep -q "$LOCATION_NAMES"; then
-    NEW_LOCATION=Automatic
-  elif echo auto | grep -q "$LOCATION_NAMES"; then
-    NEW_LOCATION=auto
+  echo 'No matching location for $SSID found in: ${!NETWORK_LOCATIONS[@]}'
+
+  # basic pattern matching to get all location names separated by newlines
+  LOCATION_NAMES=`scselect | tail -n +2 | cut -d "(" -f 2 | cut -d ")" -f 1`
+
+  # no brackets as we the grep will return a status code depending on whether the SSID has an own Location
+  if echo "$LOCATION_NAMES" | egrep -q "^$SSID$"; then
+    NEW_LOCATION="$SSID"
   else
-    echo "Automatic location was not found!"
-    echo "The following locations are known:"
-    echo "$LOCATION_NAMES"
+    # auto does not seem to be working on Mac OS X Lion, but Automatic does
+    if echo Automatic | grep -q "$LOCATION_NAMES"; then
+      NEW_LOCATION=Automatic
+    elif echo auto | grep -q "$LOCATION_NAMES"; then
+      NEW_LOCATION=auto
+    else
+      echo "Automatic location was not found!"
+      echo "The following locations are known:"
+      echo "$LOCATION_NAMES"
+    fi
   fi
 fi
 
+echo "New location = $NEW_LOCATION, Current location = $CURRENT_LOCATION"
+
 if [ "x$NEW_LOCATION" != "x" -a "x$NEW_LOCATION" != "x$CURRENT_LOCATION" ]; then
-    echo "Changing to $NEW_LOCATION"
     scselect "$NEW_LOCATION"
 fi
 
