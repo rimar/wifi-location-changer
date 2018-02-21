@@ -3,27 +3,33 @@
 # automatically change configuration of Mac OS X based on location
 exec &>/usr/local/var/log/locationchanger.log
 # redirect all IO to /dev/null (comment this out if you want to debug)
-# exec 1>/dev/null 2>/dev/null
+#exec 1>/dev/null 2>/dev/null
 
 # get a little breather before we get data for things to settle down
 sleep 2
 
+# Escape problematic caracters before passing strings to egrep or grep
+# see discussion on:
+# https://stackoverflow.com/questions/11856054/bash-easy-way-to-pass-a-raw-string-to-grep
+egrep_quote() { sed 's/[]\.|$(){}?+*^]/\\&/g' <<< "$*" }
+grep_quote() { sed 's/^$[]*.\/\\&/g' <<< "$*" }
+
 # get various system information
 SSID=`/System/Library/PrivateFrameworks/Apple80211.framework/Versions/A/Resources/airport -I\
- | grep ' SSID:' | cut -d ':' -f 2 | tr -d ' '`
+ | grep ' SSID:' | sed s/.*SSID:\ // | tr -d ' '`
 
 # basic pattern matching to get all location names separated by newlines
-LOCATION_NAMES=`scselect | tail -n +2 | cut -d "(" -f 2 | cut -d ")" -f 1`
+LOCATION_NAMES=`scselect | tail -n +2 | rev | cut -f 1 | cut -c 2- | rev | cut -c 2-`
 CURRENT_LOCATION=`scselect | grep " \* " | cut -d "(" -f 2 | cut -d ")" -f 1`
 
 # no brackets as we the grep will return a status code depending on whether the SSID has an own Location
-if echo "$LOCATION_NAMES" | egrep -q "^$SSID$"; then
+if echo "$LOCATION_NAMES" | egrep -q "^$(egrep_quote "$SSID")$"; then
   NEW_LOCATION="$SSID"
 else
   # auto does not seem to be working on Mac OS X Lion, but Automatic does
-  if echo Automatic | grep -q "$LOCATION_NAMES"; then
+  if echo Automatic | grep -q "$(grep_quote $LOCATION_NAMES)"; then
     NEW_LOCATION=Automatic
-  elif echo auto | grep -q "$LOCATION_NAMES"; then
+  elif echo auto | grep -q "$(grep_quote $LOCATION_NAMES)"; then
     NEW_LOCATION=auto
   else
     echo "Automatic location was not found!"
@@ -36,4 +42,3 @@ if [ "x$NEW_LOCATION" != "x" -a "x$NEW_LOCATION" != "x$CURRENT_LOCATION" ]; then
     echo "Changing to $NEW_LOCATION"
     scselect "$NEW_LOCATION"
 fi
-
