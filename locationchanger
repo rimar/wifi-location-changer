@@ -23,8 +23,8 @@ SSID=`/System/Library/PrivateFrameworks/Apple80211.framework/Versions/A/Resource
  | grep ' SSID:' | sed s/.*SSID:\ // | tr -d ' '`
 
 # basic pattern matching to get all location names separated by newlines
-LOCATION_NAMES=`scselect | tail -n +2 | rev | cut -f 1 | cut -c 2- | rev | cut -c 2-`
-CURRENT_LOCATION=`scselect | grep " \* " | cut -d "(" -f 2 | cut -d ")" -f 1`
+LOCATION_NAMES=$(scselect | tail -n +2 | awk '{print $NF}' | tr -d '/()/')
+CURRENT_LOCATION=$(scselect | grep " \* " | awk '{print $NF}' | tr -d '/()/')
 
 # no brackets as we the grep will return a status code depending on whether the SSID has an own Location
 if echo "$LOCATION_NAMES" | egrep -q "^$(egrep_quote "$SSID")$"; then
