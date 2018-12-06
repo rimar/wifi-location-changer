@@ -27,20 +27,20 @@ LOCATION=
 # (use to be used Location name here)
 # =============================================
 Location_Automatic="Automatic"
-Location_CompanyIntra="Company Intranet"
+Location_Work="Company Intranet"
 
 # SSIDS
 # =====
 SSID_TelekomPublic=Telekom
 SSID_Home=HomeSSID
-SSID_CompanyIntra=CompanyIntraSSID
+SSID_Work=WorkSSID
 
 
 # SSID -> LOCATION mapping
 case $SSID in
 	$SSID_TelekomPublic ) LOCATION="$Location_Automatic";;
 	$SSID_Home          ) LOCATION="$Location_Automatic";;
-	$SSID_CompanyIntra  ) LOCATION="$Location_CompanyIntra";;
+	$SSID_Work  ) LOCATION="$Location_Work";;
 	# ... add more here
 esac
 	REASON="SSID changed to $SSID"
@@ -57,12 +57,17 @@ scselect "$LOCATION"
 
 case $LOCATION in
 	$Location_Automatic )
-		# do stuff here you would do in Location_Automatic
+		sascript -e 'display notification "Network Location Changed to Automatic" with title "Network Location Changed"'
 	;;
 	
-	$Location_CompanyIntra )
-		# nothing special here
+	$Location_Work )
+		sascript -e 'display notification "Network Location Changed to Work" with title "Network Location Changed"'
 	;;
+
+	$Location_Home )
+		sascript -e 'display notification "Network Location Changed to Home" with title "Network Location Changed"'
+	;;
+	# ... add more here
 esac
 
 echo "--> Location Changer: $LOCATION - $REASON"
