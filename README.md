@@ -70,7 +70,7 @@ esac
 
 Execute:
 ```bash
-./install
+./install.sh
 ```
 
 ###Manual Installation
