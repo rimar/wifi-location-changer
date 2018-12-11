@@ -1,48 +1,76 @@
 #!/bin/bash
 
 # automatically change configuration of Mac OS X based on location
+# author: Rocco Georgi <rocco@pavingways.com>
+# version: 0.4.0
+
+# original author: Onne Gorter <o.gorter@gmail.com>
+# url: http://tech.inhelsinki.nl/locationchanger/
+# version: 0.4
+
+# redirect all IO to a logfile
 exec &>/usr/local/var/log/locationchanger.log
-# redirect all IO to /dev/null (comment this out if you want to debug)
+# redirect all IO to /dev/null (comment this in if you don#t want to write to logfile)
 #exec 1>/dev/null 2>/dev/null
 
 # get a little breather before we get data for things to settle down
 sleep 2
 
-# Escape problematic caracters before passing strings to egrep or grep
-# see discussion on:
-# https://stackoverflow.com/questions/11856054/bash-easy-way-to-pass-a-raw-string-to-grep
-egrep_quote() { 
-  sed 's/[]\.|$(){}?+*^]/\\&/g' <<< "$*" 
-}
-grep_quote() { 
-  sed 's/^$[]*.\/\\&/g' <<< "$*"
-}
 
-# get various system information
-SSID=`/System/Library/PrivateFrameworks/Apple80211.framework/Versions/A/Resources/airport -I\
- | grep ' SSID:' | sed s/.*SSID:\ // | tr -d ' '`
+# get SSID
+SSID=`/System/Library/PrivateFrameworks/Apple80211.framework/Versions/A/Resources/airport -I | grep ' SSID:' | cut -d ':' -f 2 | tr -d ' '`
+echo `date` "New SSID found: $SSID"
 
-# basic pattern matching to get all location names separated by newlines
-LOCATION_NAMES=$(scselect | tail -n +2 | awk '{print $NF}' | tr -d '/()/')
-CURRENT_LOCATION=$(scselect | grep " \* " | awk '{print $NF}' | tr -d '/()/')
+# empty location var
+LOCATION=
 
-# no brackets as we the grep will return a status code depending on whether the SSID has an own Location
-if echo "$LOCATION_NAMES" | egrep -q "^$(egrep_quote "$SSID")$"; then
-  NEW_LOCATION="$SSID"
-else
-  # auto does not seem to be working on Mac OS X Lion, but Automatic does
-  if echo Automatic | grep -q "$(grep_quote $LOCATION_NAMES)"; then
-    NEW_LOCATION=Automatic
-  elif echo auto | grep -q "$(grep_quote $LOCATION_NAMES)"; then
-    NEW_LOCATION=auto
-  else
-    echo "Automatic location was not found!"
-    echo "The following locations are known:"
-    echo "$LOCATION_NAMES"
-  fi
+# LOCATIONS 
+# (use to be used Location name here)
+# =============================================
+Location_Automatic="Automatic"
+Location_Work="Company Intranet"
+
+# SSIDS
+# =====
+SSID_TelekomPublic=Telekom
+SSID_Home=HomeSSID
+SSID_Work=WorkSSID
+
+
+# SSID -> LOCATION mapping
+case $SSID in
+	$SSID_TelekomPublic ) LOCATION="$Location_Automatic";;
+	$SSID_Home          ) LOCATION="$Location_Automatic";;
+	$SSID_Work  ) LOCATION="$Location_Work";;
+	# ... add more here
+esac
+	REASON="SSID changed to $SSID"
+
+
+# still didn't get a location -> use Location_Automatic
+if [ -z "$LOCATION" ]; then
+	LOCATION="$Location_Automatic"
+	REASON="Automatic Fallback"
 fi
 
-if [ "x$NEW_LOCATION" != "x" -a "x$NEW_LOCATION" != "x$CURRENT_LOCATION" ]; then
-    echo "Changing to $NEW_LOCATION"
-    scselect "$NEW_LOCATION"
-fi
+# change network location
+scselect "$LOCATION"
+
+case $LOCATION in
+	$Location_Automatic )
+		sascript -e 'display notification "Network Location Changed to Automatic" with title "Network Location Changed"'
+	;;
+	
+	$Location_Work )
+		sascript -e 'display notification "Network Location Changed to Work" with title "Network Location Changed"'
+	;;
+
+	$Location_Home )
+		sascript -e 'display notification "Network Location Changed to Home" with title "Network Location Changed"'
+	;;
+	# ... add more here
+esac
+
+echo "--> Location Changer: $LOCATION - $REASON"
+
+exit 0
