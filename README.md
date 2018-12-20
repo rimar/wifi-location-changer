@@ -3,9 +3,6 @@
 * Automatically changes the Mac OSX network location when Wi-Fi connection SSID changes
 * Allows having different IP settings depending on the Wi-Fi SSID
 
-Based on http://tech.inhelsinki.nl/locationchanger/ <br>
-Forked from https://github.com/rimar/wifi-location-changer/
-
 **Note:** Mountain Lion compatible
 
 ## Configuration
