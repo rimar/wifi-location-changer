@@ -9,6 +9,7 @@
 # version: 0.4
 
 # redirect all IO to a logfile
+mkdir -p /usr/local/var/log
 exec &>/usr/local/var/log/locationchanger.log
 # redirect all IO to /dev/null (comment this in if you don#t want to write to logfile)
 #exec 1>/dev/null 2>/dev/null
