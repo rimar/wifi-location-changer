@@ -18,7 +18,7 @@ sleep 2
 
 
 # get SSID
-SSID=`/System/Library/PrivateFrameworks/Apple80211.framework/Versions/A/Resources/airport -I | grep ' SSID:' | cut -d ':' -f 2 | tr -d ' '`
+SSID=`/System/Library/PrivateFrameworks/Apple80211.framework/Versions/A/Resources/airport -I | awk '/ SSID:/ {print $2}'`
 echo `date` "New SSID found: $SSID"
 
 # empty location var
