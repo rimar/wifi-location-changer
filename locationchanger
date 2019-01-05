@@ -60,15 +60,15 @@ scselect "$LOCATION"
 
 case $LOCATION in
 	$Location_Automatic )
-		sascript -e 'display notification "Network Location Changed to Automatic" with title "Network Location Changed"'
+		osascript -e 'display notification "Network Location Changed to Automatic" with title "Network Location Changed"'
 	;;
 
 	$Location_Work )
-		sascript -e 'display notification "Network Location Changed to Work" with title "Network Location Changed"'
+		osascript -e 'display notification "Network Location Changed to Work" with title "Network Location Changed"'
 	;;
 
 	$Location_Home )
-		sascript -e 'display notification "Network Location Changed to Home" with title "Network Location Changed"'
+		osascript -e 'display notification "Network Location Changed to Home" with title "Network Location Changed"'
 	;;
 	# ... add more here
 esac
