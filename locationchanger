@@ -24,7 +24,7 @@ echo `date` "New SSID found: $SSID"
 # empty location var
 LOCATION=
 
-# LOCATIONS 
+# LOCATIONS
 # (use to be used Location name here)
 # =============================================
 Location_Automatic="Automatic"
@@ -60,7 +60,7 @@ case $LOCATION in
 	$Location_Automatic )
 		sascript -e 'display notification "Network Location Changed to Automatic" with title "Network Location Changed"'
 	;;
-	
+
 	$Location_Work )
 		sascript -e 'display notification "Network Location Changed to Work" with title "Network Location Changed"'
 	;;
