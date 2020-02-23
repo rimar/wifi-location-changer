@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # automatically change configuration of Mac OS X based on location
 # author: Rocco Georgi <rocco@pavingways.com>

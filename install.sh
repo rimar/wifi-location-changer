@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 sudo cp locationchanger /usr/local/bin
 cp LocationChanger.plist ~/Library/LaunchAgents/
