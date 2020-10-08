@@ -55,8 +55,17 @@ if [ -z "$LOCATION" ]; then
 	REASON="Automatic Fallback"
 fi
 
+# Don't change if we're already there
+current_location=$(networksetup -getcurrentlocation)
+if [ "$current_location" = "$LOCATION" ]; then
+    exit
+fi
+
 # change network location
-scselect "$LOCATION"
+if ! networksetup -switchtolocation "$LOCATION"; then
+    osascript -e 'display notification "Failed to Update Network Location" with title "Network Location Failure"'
+    exit 1
+fi
 
 case $LOCATION in
 	$Location_Automatic )
