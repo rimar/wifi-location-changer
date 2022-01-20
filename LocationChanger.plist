@@ -1,16 +1,19 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
-<dict>
-    <key>Label</key>
-    <string>locationchanger</string>
-    <key>ProgramArguments</key>
-    <array>
-        <string>/usr/local/bin/locationchanger</string>
-    </array>
-    <key>WatchPaths</key>
-    <array>
-        <string>/Library/Preferences/SystemConfiguration/com.apple.airport.preferences.plist</string>
-    </array>
-</dict>
+    <dict>
+        <key>Label</key>
+        <string>locationchanger</string>
+        <key>ProgramArguments</key>
+        <array>
+            <string>/usr/local/bin/locationchanger</string>
+        </array>
+        <key>WatchPaths</key>
+        <array>
+            <string>/bin/sh</string>
+            <string>/Library/Preferences/SystemConfiguration/com.apple.airport.preferences.plist</string>
+            <string>/Library/Preferences/SystemConfiguration/com.apple.wifi.message-tracer.plist</string>
+            <string>/Library/Preferences/com.apple.wifi.known-networks.plist</string>
+        </array>
+    </dict>
 </plist>
