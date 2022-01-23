@@ -10,6 +10,8 @@
     </array>
     <key>WatchPaths</key>
     <array>
+        <string>/bin/sh</string>
+		<string>-c</string>
         <string>/Library/Preferences/SystemConfiguration/com.apple.airport.preferences.plist</string>
     </array>
 </dict>
