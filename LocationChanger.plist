@@ -10,10 +10,11 @@
     </array>
     <key>WatchPaths</key>
     <array>
-        <string>/bin/sh</string>
-		<string>-c</string>
-        <string>/Library/Preferences/SystemConfiguration/com.apple.airport.preferences.plist</string>
-        <string>/Library/Preferences/SystemConfiguration/com.apple.wifi.message-tracer.plist</string>
+    	<string>/bin/sh</string>
+	<string>-c</string>
+	<string>/Library/Preferences/SystemConfiguration/com.apple.airport.preferences.plist</string>
+	<string>/Library/Preferences/SystemConfiguration/com.apple.wifi.message-tracer.plist</string>
+	<string>/Library/Preferences/com.apple.wifi.known-networks.plist</string>
     </array>
 </dict>
 </plist>
