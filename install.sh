@@ -46,3 +46,9 @@ if [[ -f "$EXTERNAL_CALLOUT_FILE" ]]; then
     sudo cp -a $EXTERNAL_CALLOUT_FILE /usr/local/bin
     echo "An external callout ($EXTERNAL_CALLOUT_FILE) was installed also"
 fi
+
+# install mapping file
+MAPPING_FILE="./locationchanger.conf"
+if [[ -f "$MAPPING_FILE" ]]; then
+    sudo cp -a $MAPPING_FILE /usr/local/bin
+fi

@@ -19,6 +19,9 @@ exec &>/usr/local/var/log/locationchanger.log
 # sleep a bit to make sure that info is finished writing to disk about those network changes
 sleep 2
 
+# determine location of this script
+SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
+
 # get SSID
 SSID=`/System/Library/PrivateFrameworks/Apple80211.framework/Versions/A/Resources/airport -I | awk -F ' SSID: ' '/ SSID:/ {print $2}'`
 echo `date` "New SSID found: $SSID"
@@ -47,8 +50,29 @@ case $SSID in
 	$SSID_Work  ) LOCATION="$Location_Work";;
 	# ... add more here
 esac
-	REASON="SSID changed to $SSID"
+REASON="SSID changed to $SSID"
 
+# process mapping from text file
+MAP_FILE=$SCRIPT_DIR/locationchanger.conf
+if [ -f "$MAP_FILE" ]; then
+  # echo "Checking mappings from file \"$MAP_FILE\""
+  while IFS=' ' read -r loc wifi
+  do
+		if [[ "${loc}" == "#"*   ]]; then
+			true # ignore comments
+		elif [ -z "${loc}" ]; then
+      true # ignore empty lines
+		else
+			wifi=$(echo $wifi | tr -d '"' ) # remove quotes
+			# echo "location, wifi: \"$loc\", \"$wifi\" "
+			if [[ "$wifi" == "$SSID" ]]; then
+					LOCATION="$loc"
+					REASON="SSID changed to $SSID using mapping file"
+					break
+			fi
+		fi
+  done < "$MAP_FILE"
+fi
 
 # still didn't get a location -> use Location_Automatic
 if [ -z "$LOCATION" ]; then
@@ -62,38 +86,24 @@ if [ "$current_location" = "$LOCATION" ]; then
     exit
 fi
 
-# change network location
+# change network location: will output "found it!"
 if ! networksetup -switchtolocation "$LOCATION"; then
-    osascript -e 'display notification "Failed to Update Network Location" with title "Network Location Failure"'
+		osascript -e "display notification \"Failed to Change Network Location to: $LOCATION\" with title \"Network Update Failure\""
     exit 1
 fi
+echo "" # add linefeed after output from networksetup
 
 # if present, callout to an external script
-# use this script's dir and convention to determine if there is an external script to be run
-SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
+# use this script's dir and also a file-naming convention to determine if there is an external script to be run
 EXTERNAL_CALLOUT="$SCRIPT_DIR/locationchanger.callout.sh"
 if [[ -x "$EXTERNAL_CALLOUT" ]]; then
+		echo "Calling external executable \"$EXTERNAL_CALLOUT\""
 		output=$($EXTERNAL_CALLOUT)
 		exit_code=$?
-		echo "External callout \"$EXTERNAL_CALLOUT\" returned exit code: $exit_code and output:"
-		echo "$output"
-		echo ""
+		echo "exit code: $exit_code and output: $output"
 fi
 
-case $LOCATION in
-	$Location_Automatic )
-		osascript -e 'display notification "Network Location Changed to Automatic" with title "Network Location Changed"'
-	;;
-
-	$Location_Work )
-		osascript -e 'display notification "Network Location Changed to Work" with title "Network Location Changed"'
-	;;
-
-	$Location_Home )
-		osascript -e 'display notification "Network Location Changed to Home" with title "Network Location Changed"'
-	;;
-	# ... add more here
-esac
+osascript -e "display notification \"Network Location Changed to $LOCATION\" with title \"Network Update\""
 
 echo "--> Location Changer: $LOCATION - $REASON"
 
