@@ -1,65 +1,32 @@
 # Mac OSX Wi-Fi Location Changer
 
-* Automatically changes the Mac OSX network location when Wi-Fi connection SSID changes
+* Automatically changes the Mac OSX network location when a configured Wi-Fi (SSID) becomes connected
 * Allows having different IP settings depending on the Wi-Fi SSID
-
-**Note:** Mountain Lion compatible
+* Offers hook to run external script when location changes
 
 ## Configuration
-There are two areas that need to be modified in the locationchanger script, Locations and SSIDs. Both of which are case sensitive. 
-
-### Locations
-Edit locationchanger and change/add locations to be set:
-
-**Note:** Ensure you use the exact names as they appear under "Location" in OSX's System Preferences -> Network
+Create a configuration file using the sample:
 
 ```bash
-# LOCATIONS 
-Location_Automatic="Automatic"
-Location_Work="Company Intranet"
+cp ./locationchanger.config.sample ./locationchanger.conf
 ```
 
-### SSIDs
-Edit locationchanger and add/edit SSIDs to be detected:
+Add to this new file (`./locationchanger.conf`) a single line for each pair of location and SSID that you want this service to recognize and set when the SSID connects. That is, for each location, add one line with both a location name and a Wi-Fi SSID, separated by a space, taking care to use exact capitalization, and using quotations as necessary.
 
-```bash
-# SSIDS
-SSID_TelekomPublic=Telekom
-SSID_Home=HomeSSID
-SSID_Work=WorkSSID
-```
+For example, if your location is "home", and the Wi-Fi SSID to trigger that location is "myWifiName", then a line in the configuration file would look like:
 
-Edit/Add SSID -> LOCATION mapping to list:
+`home myWifiName`
 
-```bash
-# SSID -> LOCATION mapping
-case $SSID in
-	$SSID_TelekomPublic ) LOCATION="$Location_Automatic";;
-	$SSID_Home          ) LOCATION="$Location_Automatic";;
-	$SSID_Work  ) LOCATION="$Location_Work";;
-	# ... add more here
-```
+If your SSID is instead a name like Wu Tang LAN, with spaces, then use quotes around the SSID like:
+
+`home "Wu Tang LAN"`
+
+**Note:** Ensure you use the exact location names as they appear under "Location" in OSX's System Preferences -> Network, and for SSIDs in your Wi-Fi menu. Capitalization must match! Spaces must match within a quoted name!
+
+Add as many location + SSID lines as you like to the configuration file.
 
 ### MacOS Notifications
-The script triggers a MacOS Notification, if you don't want this just delete the three lines that start with `osascript` around line 57. If you add or delete Locations, the case needs to be updated.
-
-```bash
-case $LOCATION in
-        $Location_Automatic )
-                # do stuff here you would do in Location_Automatic
-                osascript -e 'display notification "Network Location Changed to Automatic" with title "Network Location Changed"'
-        ;;
-
-        $Location_Home )
-                osascript -e 'display notification "Network Location Changed to Home" with title "Network Location Changed"'
-        ;;
-
-        $Location_Work )
-                osascript -e 'display notification "Network Location Changed to Work" with title "Network Location Changed"'
-        ;;
-				# ... add more here
-esac
-```
+The script triggers a MacOS Notification upon changing location. If you don't want this just delete the lines that start with `osascript`.
 
 ## Installation
 
@@ -75,6 +42,7 @@ Execute:
 Copy these files:
 ```bash
 cp locationchanger /usr/local/bin
+cp locationchanger.conf /usr/local/bin
 cp LocationChanger.plist ~/Library/LaunchAgents/
 ```
 Should you place the locationchanger script to another location, make sure you edit the path in LocationChanger.plist too.
@@ -105,3 +73,11 @@ By convention, placing an executable script in this directory with name:
 `locationchanger.callout.sh`
 
 and then running the installer, will cause the locationchanger service to run that script each time location changes.
+
+### Testing
+
+For ease in testing, configure two locations within the current environment, e.g., "home" and "guest", each associated with a different SSID, such as the main SSID and guest SSID on your router. Then using the Wi-Fi menu, toggle between those SSIDs. You can see any success or error messages that are written to the log with a command like:
+
+```
+tail /usr/local/var/log/locationchanger.log
+```

@@ -1,0 +1,13 @@
+# This is a sample file for creating text file "locationchanger.conf" which associates location names with wifi names.
+# 
+# Below, enter two pieces of text: location and wifi, separated by space(s)
+# If the wifi name contains space(s), make sure to put quotes around that wifi name; location may NOT have any spaces or odd characters.
+# Any line with a pound sign in front will be ignored as a comment. Blank lines are also ignored.
+#
+#
+# LOCATION  WIFI
+#
+# For example:
+# Home myHomeWifiSSID
+# Work "my Work Wifi"
+
