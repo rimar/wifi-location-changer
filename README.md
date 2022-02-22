@@ -97,3 +97,11 @@ See log in action:
 ```bash
 tail -f /usr/local/var/log/locationchanger.log
 ```
+
+## Run arbitrary script when location changes
+
+By convention, placing an executable script in this directory with name:
+
+`locationchanger.callout.sh`
+
+and then running the installer, will cause the locationchanger service to run that script each time location changes.
