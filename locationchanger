@@ -11,12 +11,13 @@
 # redirect all IO to a logfile
 mkdir -p /usr/local/var/log
 exec &>/usr/local/var/log/locationchanger.log
-# redirect all IO to /dev/null (comment this in if you don#t want to write to logfile)
+
+# to avoid any output, any logfile, uncomment the following:
 #exec 1>/dev/null 2>/dev/null
 
-# get a little breather before we get data for things to settle down
+# this service is called immediately after network activity.
+# sleep a bit to make sure that info is finished writing to disk about those network changes
 sleep 2
-
 
 # get SSID
 SSID=`/System/Library/PrivateFrameworks/Apple80211.framework/Versions/A/Resources/airport -I | awk -F ' SSID: ' '/ SSID:/ {print $2}'`
@@ -65,6 +66,18 @@ fi
 if ! networksetup -switchtolocation "$LOCATION"; then
     osascript -e 'display notification "Failed to Update Network Location" with title "Network Location Failure"'
     exit 1
+fi
+
+# if present, callout to an external script
+# use this script's dir and convention to determine if there is an external script to be run
+SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
+EXTERNAL_CALLOUT="$SCRIPT_DIR/locationchanger.callout.sh"
+if [[ -x "$EXTERNAL_CALLOUT" ]]; then
+		output=$($EXTERNAL_CALLOUT)
+		exit_code=$?
+		echo "External callout \"$EXTERNAL_CALLOUT\" returned exit code: $exit_code and output:"
+		echo "$output"
+		echo ""
 fi
 
 case $LOCATION in

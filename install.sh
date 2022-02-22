@@ -38,3 +38,11 @@ else
     launchctl load ~/Library/LaunchAgents/LocationChanger.plist
     echo "The service \"locationchanger\" has been installed and started"
 fi
+
+# install any external callout that is present
+EXTERNAL_CALLOUT_FILE="./locationchanger.callout.sh"
+if [[ -f "$EXTERNAL_CALLOUT_FILE" ]]; then
+    chmod +x $EXTERNAL_CALLOUT_FILE
+    sudo cp -a $EXTERNAL_CALLOUT_FILE /usr/local/bin
+    echo "An external callout ($EXTERNAL_CALLOUT_FILE) was installed also"
+fi
