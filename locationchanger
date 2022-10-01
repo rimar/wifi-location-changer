@@ -98,7 +98,7 @@ echo "" # add linefeed after output from networksetup
 EXTERNAL_CALLOUT="$SCRIPT_DIR/locationchanger.callout.sh"
 if [[ -x "$EXTERNAL_CALLOUT" ]]; then
 		echo "Calling external executable \"$EXTERNAL_CALLOUT\""
-		output=$($EXTERNAL_CALLOUT)
+		output=$($EXTERNAL_CALLOUT "$LOCATION")
 		exit_code=$?
 		echo "exit code: $exit_code and output: $output"
 fi
