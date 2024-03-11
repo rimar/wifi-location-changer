@@ -6,6 +6,7 @@
     <string>locationchanger</string>
     <key>ProgramArguments</key>
     <array>
+	<string>/usr/bin/sudo</string>
         <string>/usr/local/bin/locationchanger</string>
     </array>
     <key>WatchPaths</key>
