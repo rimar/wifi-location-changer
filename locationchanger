@@ -23,7 +23,7 @@ sleep 2
 SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 
 # get SSID
-SSID=`/System/Library/PrivateFrameworks/Apple80211.framework/Versions/A/Resources/airport -I | awk -F ' SSID: ' '/ SSID:/ {print $2}'`
+SSID=`/usr/bin/wdutil info | awk -F ' SSID.*: ' '/ SSID / {print $2}'`
 echo `date` "New SSID found: $SSID"
 
 # empty location var
