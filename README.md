@@ -8,7 +8,7 @@
 Create a configuration file using the sample:
 
 ```bash
-cp ./locationchanger.config.sample ./locationchanger.conf
+cp ./locationchanger.conf.sample ./locationchanger.conf
 ```
 
 Add to this new file (`./locationchanger.conf`) a single line for each pair of location and SSID that you want this service to recognize and set when the SSID connects. That is, for each location, add one line with both a location name and a Wi-Fi SSID, separated by a space, taking care to use exact capitalization, and using quotations as necessary.
