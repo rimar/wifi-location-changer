@@ -82,21 +82,10 @@ For ease in testing, configure two locations within the current environment, e.g
 tail /usr/local/var/log/locationchanger.log
 ```
 
-## MacOS Ventura fallback to Automatic location issue
+## MacOS Ventura/Sonoma fallback to Automatic location issue
 
 This repository already handles the case already if the SSID is not listed in the config file. In that case it should switch to the location `Automatic`, but it requires root access to do so.
-If you want that it changes the settings without the need to execute it again for each new network with root credentials just add to following to settings and install it again with `./install.sh`:
-
-### Add `<string>/usr/bin/sudo</string>` within the array config
-```xml
-# LocationChanger.plist
-...
-<array>
-    <string>/usr/bin/sudo</string>
-    <string>/usr/local/bin/locationchanger</string>
-</array>
-...
-```
+This is the default behaviour so you just need to do the following step. 
 
 ### Modify the sudoers file
 - Run `sudo visudo`
