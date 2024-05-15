@@ -3,6 +3,7 @@
 * Automatically changes the Mac OSX network location when a configured Wi-Fi (SSID) becomes connected
 * Allows having different IP settings depending on the Wi-Fi SSID
 * Offers hook to run external script when location changes
+* Manage last OSX (up to 14.5) changes in airport and wdutil program
 
 ## Configuration
 Create a configuration file using the sample:
