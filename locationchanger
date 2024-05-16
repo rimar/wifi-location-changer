@@ -23,7 +23,20 @@ sleep 2
 SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 
 # get SSID
-SSID=`/System/Library/PrivateFrameworks/Apple80211.framework/Versions/A/Resources/airport -I | awk -F ' SSID: ' '/ SSID:/ {print $2}'`
+# SSID=`/System/Library/PrivateFrameworks/Apple80211.framework/Versions/A/Resources/airport -I | awk -F ' SSID: ' '/ SSID:/ {print $2}'`
+# SSID=`/usr/bin/wdutil info | grep -i ' SSID' | awk -F 'SSID[ ]{2,}: ' '{print $2}'`
+
+os_ver_major=`/usr/bin/sw_vers -productVersion | awk -F. '{print $1}'`
+os_ver_minor=`/usr/bin/sw_vers -productVersion | awk -F. '{print $2}'`
+
+if [[ $os_ver_major -ge 14 ]] && [[ $os_ver_minor -ge 5 ]]; then
+		IFNAME=`/usr/bin/wdutil info | grep -ia -A3 "WIFI"  | awk -F ' Interface Name.*: ' '/ Interface Name / {print $2}'`
+		# echo `date` "New IFNAME found: $IFNAME"
+		SSID=`/usr/sbin/networksetup -getairportnetwork $IFNAME | awk -F 'Current Wi-Fi Network: ' '{print $2}'`
+else
+		SSID=`/usr/bin/wdutil info | awk -F ' SSID.*: ' '/ SSID / {print $2}'`
+fi
+
 echo `date` "New SSID found: $SSID"
 
 # empty location var
