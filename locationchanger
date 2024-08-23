@@ -48,7 +48,6 @@ SSID_Work=WorkSSID
 # empty location var
 DNS=
 
-DNS_CIGL="10.123.142.10"
 
 # LOCATIONS
 # (use to be used Location name here)
