@@ -23,8 +23,11 @@ sleep 2
 SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 
 # get SSID
-SSID=`/System/Library/PrivateFrameworks/Apple80211.framework/Versions/A/Resources/airport -I | awk -F ' SSID: ' '/ SSID:/ {print $2}'`
+# SSID=`/System/Library/PrivateFrameworks/Apple80211.framework/Versions/A/Resources/airport -I | awk -F ' SSID: ' '/ SSID:/ {print $2}'`
+#SSID=`networksetup -getairportnetwork en0 | awk -F ' SSID: ' '/ SSID:/ {print $2}'`
+SSID=`networksetup -getairportnetwork en0 | awk -F ': ' '{print $2}'`
 echo `date` "New SSID found: $SSID"
+
 
 # empty location var
 LOCATION=
@@ -42,6 +45,17 @@ SSID_TelekomPublic=Telekom
 SSID_Home=HomeSSID
 SSID_Work=WorkSSID
 
+# empty location var
+DNS=
+
+DNS_CIGL="10.123.142.10"
+
+# LOCATIONS
+# (use to be used Location name here)
+# =============================================
+Location_Automatic="Automatic"
+Location_Home="Home"
+Location_Work="Company Intranet"
 
 # SSID -> LOCATION mapping
 case $SSID in
@@ -52,44 +66,82 @@ case $SSID in
 esac
 REASON="SSID changed to $SSID"
 
-# process mapping from text file
 MAP_FILE=$SCRIPT_DIR/locationchanger.conf
 if [ -f "$MAP_FILE" ]; then
-  # echo "Checking mappings from file \"$MAP_FILE\""
-  while IFS=' ' read -r loc wifi
-  do
-		if [[ "${loc}" == "#"*   ]]; then
-			true # ignore comments
-		elif [ -z "${loc}" ]; then
-      true # ignore empty lines
-		else
-			wifi=$(echo $wifi | tr -d '"' ) # remove quotes
-			# echo "location, wifi: \"$loc\", \"$wifi\" "
-			if [[ "$wifi" == "$SSID" ]]; then
-					LOCATION="$loc"
-					REASON="SSID changed to $SSID using mapping file"
-					break
-			fi
-		fi
-  done < "$MAP_FILE"
+    echo "Checking mappings from file $MAP_FILE"
+    while IFS= read -r line || [ -n "$line" ]; do
+        # Ignore comments and empty lines
+        if [[ "$line" =~ ^#.* ]] || [ -z "$line" ]; then
+            continue
+        fi
+
+        # Extract fields using regular expression to handle quoted strings
+        loc=$(echo "$line" | awk '{print $1}')
+        wifi=$(echo "$line" | awk -F'"' '{print $2}')
+        dns=$(echo "$line" | awk -F'"' '{print $4}')
+
+        echo "Location: $loc, WiFi: $wifi, DNS: $dns"
+
+        if [[ "$wifi" == "$SSID" ]]; then
+            LOCATION="$loc"
+            DNS_SETTING="$dns"
+            REASON="Info : SSID changed to $SSID using mapping file"
+            break
+        fi
+    done < "$MAP_FILE"
 fi
 
 # still didn't get a location -> use Location_Automatic
 if [ -z "$LOCATION" ]; then
 	LOCATION="$Location_Automatic"
 	REASON="Automatic Fallback"
+	sudo networksetup -setdnsservers "Wi-Fi" "Empty" >/dev/null 2>&1
 fi
+
+# Don't change if DNS already there
+#current_location=$(networksetup -getcurrentlocation)
+#if [ "$current_location" = "$LOCATION" ]; then
+#    exit
+#fi
 
 # Don't change if we're already there
-current_location=$(networksetup -getcurrentlocation)
-if [ "$current_location" = "$LOCATION" ]; then
-    exit
+# Check if both the current location and DNS are the same as the desired ones
+if [ "$current_location" = "$LOCATION" ] && [ "$current_dns" = "$dns" ]; then
+    echo "Info: Both location and DNS are already set correctly. No need to change."
+    exit 1
 fi
 
-# change network location: will output "found it!"
-if ! networksetup -switchtolocation "$LOCATION"; then
-		osascript -e "display notification \"Failed to Change Network Location to: $LOCATION\" with title \"Network Update Failure\""
-    exit 1
+if [ "$current_location" != "$LOCATION" ]; then
+    echo "Info: Updating network location to $LOCATION..."
+	osascript -e "display notification \"Succeeded to Change Network Location to: $LOCATION\" with title \"Network Update Succes\""
+    networksetup -switchtolocation "$LOCATION" >/dev/null 2>&1
+else
+    echo "Error: Unable to update network location to $LOCATION..."
+	osascript -e "display notification \"Failed to Change Network Location to: $LOCATION\" with title \"Network Update Failure\""
+fi
+
+# Check if the DNS value is empty
+if [ -z "$dns" ] || [ "$dns" == "\"\"" ];  then
+	echo "Info: DNS from Config empty."
+	sudo networksetup -setdnsservers "Wi-Fi" "Empty" >/dev/null 2>&1
+	if [ $? -eq 0 ]; then
+		echo "Info: DNS variable is empty, DNS servers have been cleared."
+		osascript -e "display notification \"Successfully cleared DNS\" with title \"DNS Update Success\""
+	else
+		echo "Error: Failed to clear DNS."
+		osascript -e "display notification \"Failed to clear DNS\" with title \"DNS Update Failure\""
+	fi
+else
+	# If the DNS value is not empty, set the DNS to the specified value
+	echo "Info: DNS from Config defined."
+	sudo networksetup -setdnsservers "Wi-Fi" "$dns" >/dev/null 2>&1
+	if [ $? -eq 0 ]; then
+		echo "Info: DNS updated to \"$dns\"."
+		osascript -e "display notification \"Successfully updated DNS to: $dns\" with title \"DNS Update Success\""
+	else
+		echo "Error: Failed to update DNS to \"$dns\"."
+		osascript -e "display notification \"Failed to update DNS to $dns\" with title \"DNS Update Failure\""
+	fi
 fi
 echo "" # add linefeed after output from networksetup
 
