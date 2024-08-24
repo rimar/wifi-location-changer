@@ -7,7 +7,7 @@
 # original author: Onne Gorter <o.gorter@gmail.com>
 # url: http://tech.inhelsinki.nl/locationchanger/
 # version: 0.4
-
+# Added DNS Capabilities
 # redirect all IO to a logfile
 mkdir -p /usr/local/var/log
 exec &>/usr/local/var/log/locationchanger.log
@@ -23,6 +23,8 @@ sleep 2
 SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 
 # get SSID
+# SSID=`/System/Library/PrivateFrameworks/Apple80211.framework/Versions/A/Resources/airport -I | awk -F ' SSID: ' '/ SSID:/ {print $2}'`
+#SSID=`networksetup -getairportnetwork en0 | awk -F ' SSID: ' '/ SSID:/ {print $2}'`
 SSID=`networksetup -getairportnetwork en0 | awk -F ': ' '{print $2}'`
 echo `date` "New SSID found: $SSID"
 
@@ -46,6 +48,7 @@ SSID_Work=WorkSSID
 # empty location var
 DNS=
 
+DNS_CIGL=""
 
 # LOCATIONS
 # (use to be used Location name here)
@@ -91,8 +94,11 @@ fi
 # still didn't get a location -> use Location_Automatic
 if [ -z "$LOCATION" ]; then
 	LOCATION="$Location_Automatic"
-	REASON="Automatic Fallback"
+	REASON=""
 	sudo networksetup -setdnsservers "Wi-Fi" "Empty" >/dev/null 2>&1
+	echo "Info: Automatic Fallback (unknown wifi) ==> DNS cleared & Location set to Automatic"
+	echo "" # add linefeed after output from networksetup
+	exit 1
 fi
 
 # Don't change if DNS already there
@@ -140,7 +146,6 @@ else
 		osascript -e "display notification \"Failed to update DNS to $dns\" with title \"DNS Update Failure\""
 	fi
 fi
-echo "" # add linefeed after output from networksetup
 
 # if present, callout to an external script
 # use this script's dir and also a file-naming convention to determine if there is an external script to be run
@@ -155,5 +160,6 @@ fi
 osascript -e "display notification \"Network Location Changed to $LOCATION\" with title \"Network Update\""
 
 echo "--> Location Changer: $LOCATION - $REASON"
+echo "" # add linefeed after output from networksetup
 
 exit 0
