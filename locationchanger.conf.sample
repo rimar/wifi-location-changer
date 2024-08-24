@@ -9,5 +9,5 @@
 #
 # For example:
 # Home myHomeWifiSSID
-# Work "my Work Wifi"
+# Work "my Work Wifi" "8.8.8.8"
 
