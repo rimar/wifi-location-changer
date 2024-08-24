@@ -1,8 +1,9 @@
 # Mac OSX Wi-Fi Location Changer
 
-* Automatically changes the Mac OSX network location when a configured Wi-Fi (SSID) becomes connected
+* Automatically changes the Mac OSX network location & custom DNS settings when a configured Wi-Fi (SSID) becomes connected
 * Allows having different IP settings depending on the Wi-Fi SSID
 * Offers hook to run external script when location changes
+* macOS Sonoma 14.4.1 tested
 
 ## Configuration
 Create a configuration file using the sample:
