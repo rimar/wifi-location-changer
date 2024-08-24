@@ -7,7 +7,7 @@
 # original author: Onne Gorter <o.gorter@gmail.com>
 # url: http://tech.inhelsinki.nl/locationchanger/
 # version: 0.4
-# Added DNS Capabilities
+
 # redirect all IO to a logfile
 mkdir -p /usr/local/var/log
 exec &>/usr/local/var/log/locationchanger.log
@@ -91,23 +91,16 @@ if [ -f "$MAP_FILE" ]; then
     done < "$MAP_FILE"
 fi
 
-# still didn't get a location -> use Location_Automatic
+# still didn't get a location -> no match between saved SSID and actual SSID -> use Location_Automatic
 if [ -z "$LOCATION" ]; then
 	LOCATION="$Location_Automatic"
 	REASON=""
 	sudo networksetup -setdnsservers "Wi-Fi" "Empty" >/dev/null 2>&1
-	echo "Info: Automatic Fallback (unknown wifi) ==> DNS cleared & Location set to Automatic"
+	echo "Info: Automatic Fallback (undefined wifi) ==> DNS cleared & Location set to Automatic"
 	echo "" # add linefeed after output from networksetup
 	exit 1
 fi
 
-# Don't change if DNS already there
-#current_location=$(networksetup -getcurrentlocation)
-#if [ "$current_location" = "$LOCATION" ]; then
-#    exit
-#fi
-
-# Don't change if we're already there
 # Check if both the current location and DNS are the same as the desired ones
 if [ "$current_location" = "$LOCATION" ] && [ "$current_dns" = "$dns" ]; then
     echo "Info: Both location and DNS are already set correctly. No need to change."
