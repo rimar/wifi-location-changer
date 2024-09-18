@@ -45,10 +45,9 @@ SSID_TelekomPublic=Telekom
 SSID_Home=HomeSSID
 SSID_Work=WorkSSID
 
-# empty location var
+# empty location var (for DNS changer, DNS config needs to be done in the external config file)
 DNS=
-
-DNS_CIGL=""
+DNS_Home="8.8.8.8"
 
 # LOCATIONS
 # (use to be used Location name here)
