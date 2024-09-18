@@ -1,4 +1,4 @@
-# Mac OSX Wi-Fi Location Changer
+# Mac OSX Wi-Fi Location & DNS Changer
 
 * Automatically changes the Mac OSX network location & custom DNS settings when a configured Wi-Fi (SSID) becomes connected
 * Allows having different IP settings depending on the Wi-Fi SSID
@@ -22,9 +22,13 @@ If your SSID is instead a name like Wu Tang LAN, with spaces, then use quotes ar
 
 `home "Wu Tang LAN"`
 
+If no DNS defined, the DNS will be cleared to prevent stucking in the past DNS settings. To define the DNS servers, use quotes around the adress.
+
+`home "Wu Tang LAN" "8.8.8.8"` 
+
 **Note:** Ensure you use the exact location names as they appear under "Location" in OSX's System Preferences -> Network, and for SSIDs in your Wi-Fi menu. Capitalization must match! Spaces must match within a quoted name!
 
-Add as many location + SSID lines as you like to the configuration file.
+Add as many location + SSID lines + DNS as you like to the configuration file.
 
 ### MacOS Notifications
 The script triggers a MacOS Notification upon changing location. If you don't want this just delete the lines that start with `osascript`.
