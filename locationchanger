@@ -56,7 +56,7 @@ LOCATION=
 # =============================================
 Location_Automatic="Automatic"
 Location_Home="Home"
-Location_Work="Colomberotto_Wifi"
+Location_Work="Automatic"
 
 # SSIDS
 # =====
