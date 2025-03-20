@@ -22,8 +22,15 @@ sleep 2
 # determine location of this script
 SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 
-# get SSID
-SSID=`/System/Library/PrivateFrameworks/Apple80211.framework/Versions/A/Resources/airport -I | awk -F ' SSID: ' '/ SSID:/ {print $2}'`
+# get macOS version
+OS_VERSION=$(sw_vers -productVersion | cut -d. -f1)
+
+# get SSID based on OS version
+if [ "$OS_VERSION" -ge "15" ]; then
+    SSID=$(system_profiler SPAirPortDataType | awk '/Current Network/ {getline;$1=$1; gsub(":",""); print;exit}')
+else
+    SSID=$(/System/Library/PrivateFrameworks/Apple80211.framework/Versions/A/Resources/airport -I | awk -F ' SSID: ' '/ SSID:/ {print $2}')
+fi
 echo `date` "New SSID found: $SSID"
 
 # empty location var
