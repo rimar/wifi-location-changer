@@ -158,18 +158,6 @@ This version includes support for macOS Tahoe 26.0+ by using the Shortcuts app t
 ### Secure Location Switching
 Starting with macOS Sequoia 15.5+, changing network locations requires admin privileges. This project uses a secure helper script approach to minimize security risks.
 
-**Required Setup:**
-1. Run `./install.sh` to install the helper script
-2. Add the following line to your sudoers file:
-   ```bash
-   sudo visudo
-   ```
-   Add this line (replace `your_username` with your actual username):
-   ```
-   your_username ALL=(ALL) NOPASSWD: /usr/local/bin/locationchanger-helper
-   ```
-   To find your username: `whoami`
-
 **Security Benefits:**
 - Only the specific helper script can be executed without password
 - Helper script is owned by root with restricted permissions (500)
@@ -261,4 +249,19 @@ If your SSID is instead a name like Wu Tang LAN, with spaces, then use quotes ar
 
 `home "Wu Tang LAN"`
 
-**Note:** Ensure you use the exact location names as they appear under "Location" in OSX's System Preferences -> Network, and for SSIDs in your Wi-Fi menu. Capitalization must match! Spaces must match within a quoted name!  
+**Note:** Ensure you use the exact location names as they appear under "Location" in OSX's System Preferences -> Network, and for SSIDs in your Wi-Fi menu. Capitalization must match! Spaces must match within a quoted name!
+
+## Required Setup
+
+**Manual Setup (Required for location switching):**
+
+1. Run `./install.sh` to install the helper script
+2. Add the following line to your sudoers file:
+   ```bash
+   sudo visudo
+   ```
+   Add this line (replace `your_username` with your actual username):
+   ```
+   your_username ALL=(ALL) NOPASSWD: /usr/local/bin/locationchanger-helper
+   ```
+   To find your username: `whoami`  
