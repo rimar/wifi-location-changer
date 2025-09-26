@@ -153,6 +153,8 @@ sudo visudo
 ### macOS Tahoe 26.0+ Support
 This version includes support for macOS Tahoe 26.0+ by using the Shortcuts app to detect Wi-Fi SSIDs when traditional methods fail. The script automatically falls back to legacy methods if Shortcuts is not available.
 
+**Note:** macOS 26.0+ has enhanced privacy protections that may prevent automatic SSID detection. If you see "Privacy Protected" or "<redacted>" in the configuration tool, you can still manually configure SSID mappings. For automatic detection, create a Shortcuts app shortcut named "Current Wi-Fi" with a "Get Network Details" action set to "Wi-Fi Name".
+
 ### Secure Location Switching
 Starting with macOS Sequoia 15.5+, changing network locations requires admin privileges. This project uses a secure helper script approach to minimize security risks.
 
