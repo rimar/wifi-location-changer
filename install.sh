@@ -3,8 +3,12 @@
 set -eu
 
 chmod +x locationchanger
+chmod +x locationchanger-helper
 sudo mkdir -p /usr/local/bin
 sudo cp -a locationchanger /usr/local/bin
+sudo cp -a locationchanger-helper /usr/local/bin
+sudo chown root /usr/local/bin/locationchanger-helper
+sudo chmod 500 /usr/local/bin/locationchanger-helper
 cp LocationChanger.plist ~/Library/LaunchAgents/
 
 # remove older service if found
@@ -52,3 +56,12 @@ MAPPING_FILE="./locationchanger.conf"
 if [[ -f "$MAPPING_FILE" ]]; then
     sudo cp -a $MAPPING_FILE /usr/local/bin
 fi
+
+echo ""
+echo "IMPORTANT: For location switching to work, you need to add the following line to your sudoers file:"
+echo "Run: sudo visudo"
+echo "Add this line (replace 'your_username' with your actual username):"
+echo "your_username ALL=(ALL) NOPASSWD: /usr/local/bin/locationchanger-helper"
+echo ""
+echo "To find your username, run: whoami"
+echo ""

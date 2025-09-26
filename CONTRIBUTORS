@@ -1,0 +1,39 @@
+# Contributors
+
+This file lists all contributors to the Wi-Fi Location Changer project.
+
+## Original Author
+
+**Alex Rabinovich** <4alexr@gmail.com>
+- GitHub: [@putchi](https://github.com/putchi)
+- Original author and creator of the Wi-Fi Location Changer project
+- Contributions:
+  - Original project design and implementation
+  - macOS Tahoe 26.0+ compatibility with Shortcuts app integration
+  - Secure helper script implementation for location switching
+  - Configuration UI development (SwiftUI app and shell-based tool)
+  - Security improvements and vulnerability fixes
+  - Documentation updates and installation improvements
+
+## Contributors
+
+**Rocco Georgi** <rocco@pavingways.com>
+- Version: 0.4.0
+- Maintainer and developer contributions
+
+**Onne Gorter** <o.gorter@gmail.com>
+- Version: 0.4
+- Contributor
+- URL: http://tech.inhelsinki.nl/locationchanger/
+
+## How to Contribute
+
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Test thoroughly
+5. Submit a pull request
+
+## Recognition
+
+Contributors are listed in chronological order of their first contribution. Thank you to everyone who has helped improve this project!
