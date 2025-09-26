@@ -1,77 +1,84 @@
 #!/bin/bash
 
-# automatically change configuration of Mac OS X based on location
-# author: Rocco Georgi <rocco@pavingways.com>
-# version: 0.4.0
-
-# original author: Onne Gorter <o.gorter@gmail.com>
-# url: http://tech.inhelsinki.nl/locationchanger/
-# version: 0.4
-
-# redirect all IO to a logfile
 mkdir -p /usr/local/var/log
 exec &>/usr/local/var/log/locationchanger.log
 
-# to avoid any output, any logfile, uncomment the following:
-#exec 1>/dev/null 2>/dev/null
-
-# this service is called immediately after network activity.
-# sleep a bit to make sure that info is finished writing to disk about those network changes
 sleep 2
 
-# determine location of this script
 SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 
-# get macOS version
 OS_VERSION=$(sw_vers -productVersion | cut -d. -f1)
 
-# get SSID based on OS version
-if [ "$OS_VERSION" -ge "15" ]; then
+get_ssid_via_shortcut() {
+    local tmp output status
+    
+    if ! command -v shortcuts >/dev/null 2>&1; then
+        echo "$(date) Shortcuts CLI not found; falling back to legacy methods"
+        return 1
+    fi
+    
+    tmp=$(mktemp 2>/dev/null)
+    if [ -z "$tmp" ]; then
+        echo "$(date) Failed to create temporary file for shortcut output"
+        return 1
+    fi
+    
+    if shortcuts run "Current Wi-Fi" --output-type public.plain-text --output-path "$tmp" >/dev/null 2>&1; then
+        output=$(tr -d '\r' < "$tmp" | sed 's/^\s*//;s/\s*$//')
+        rm -f "$tmp"
+        if [ -n "$output" ]; then
+            echo "$output"
+            return 0
+        fi
+        echo "$(date) Shortcut returned an empty SSID; falling back to legacy methods"
+    else
+        status=$?
+        rm -f "$tmp"
+        echo "$(date) Failed to run shortcut \"Current Wi-Fi\" (exit $status). Run it once manually to grant permissions."
+    fi
+    
+    return 1
+}
+
+if [ "$OS_VERSION" -ge "26" ]; then
+    SSID=$(get_ssid_via_shortcut)
+    if [ $? -ne 0 ] || [ -z "$SSID" ]; then
+        SSID=$(system_profiler SPAirPortDataType | awk '/Current Network/ {getline;$1=$1; gsub(":",""); print;exit}')
+    fi
+elif [ "$OS_VERSION" -ge "15" ]; then
     SSID=$(system_profiler SPAirPortDataType | awk '/Current Network/ {getline;$1=$1; gsub(":",""); print;exit}')
 else
     SSID=$(/System/Library/PrivateFrameworks/Apple80211.framework/Versions/A/Resources/airport -I | awk -F ' SSID: ' '/ SSID:/ {print $2}')
 fi
 echo `date` "New SSID found: $SSID"
 
-# empty location var
 LOCATION=
 
-# LOCATIONS
-# (use to be used Location name here)
-# =============================================
 Location_Automatic="Automatic"
 Location_Home="Home"
 Location_Work="Company Intranet"
 
-# SSIDS
-# =====
 SSID_TelekomPublic=Telekom
 SSID_Home=HomeSSID
 SSID_Work=WorkSSID
 
-
-# SSID -> LOCATION mapping
 case $SSID in
 	$SSID_TelekomPublic ) LOCATION="$Location_Automatic";;
 	$SSID_Home          ) LOCATION="$Location_Home";;
 	$SSID_Work  ) LOCATION="$Location_Work";;
-	# ... add more here
 esac
 REASON="SSID changed to $SSID"
 
-# process mapping from text file
 MAP_FILE=$SCRIPT_DIR/locationchanger.conf
 if [ -f "$MAP_FILE" ]; then
-  # echo "Checking mappings from file \"$MAP_FILE\""
   while IFS=' ' read -r loc wifi
   do
 		if [[ "${loc}" == "#"*   ]]; then
-			true # ignore comments
+			true
 		elif [ -z "${loc}" ]; then
-      true # ignore empty lines
+      true
 		else
-			wifi=$(echo $wifi | tr -d '"' ) # remove quotes
-			# echo "location, wifi: \"$loc\", \"$wifi\" "
+			wifi=$(echo $wifi | tr -d '"' )
 			if [[ "$wifi" == "$SSID" ]]; then
 					LOCATION="$loc"
 					REASON="SSID changed to $SSID using mapping file"
@@ -81,27 +88,22 @@ if [ -f "$MAP_FILE" ]; then
   done < "$MAP_FILE"
 fi
 
-# still didn't get a location -> use Location_Automatic
 if [ -z "$LOCATION" ]; then
 	LOCATION="$Location_Automatic"
 	REASON="Automatic Fallback"
 fi
 
-# Don't change if we're already there
 current_location=$(networksetup -getcurrentlocation)
 if [ "$current_location" = "$LOCATION" ]; then
     exit
 fi
 
-# change network location: will output "found it!"
-if ! networksetup -switchtolocation "$LOCATION"; then
+if ! sudo /usr/local/bin/locationchanger-helper "$LOCATION"; then
 		osascript -e "display notification \"Failed to Change Network Location to: $LOCATION\" with title \"Network Update Failure\""
     exit 1
 fi
-echo "" # add linefeed after output from networksetup
+echo ""
 
-# if present, callout to an external script
-# use this script's dir and also a file-naming convention to determine if there is an external script to be run
 EXTERNAL_CALLOUT="$SCRIPT_DIR/locationchanger.callout.sh"
 if [[ -x "$EXTERNAL_CALLOUT" ]]; then
 		echo "Calling external executable \"$EXTERNAL_CALLOUT\""
