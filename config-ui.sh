@@ -134,8 +134,8 @@ show_status() {
     
     echo -e "${YELLOW}Current Status:${NC}"
     echo -e "┌─────────────────────────────────────────────────────────────┐"
-    printf "│ Current Wi-Fi:                    %-20s │\n" "$current_ssid"
-    printf "│ Mappings:                               %-2s                │\n" "$mapping_count"
+    printf "│ Current Wi-Fi: %-45s │\n" "$current_ssid"
+    printf "│ Mappings:      %-45s │\n" "$mapping_count"
     echo -e "└─────────────────────────────────────────────────────────────┘"
     
     # Show privacy notice for macOS 26.0+
@@ -162,7 +162,7 @@ show_mappings() {
             if [[ -n "$mapping" ]]; then
                 local location=$(echo "$mapping" | awk '{print $1}')
                 local ssid=$(echo "$mapping" | cut -d' ' -f2- | sed 's/^"//;s/"$//')
-                printf "│ %-15s %-20s │\n" "$location" "$ssid"
+                printf "│ %-15s %-45s │\n" "$location" "$ssid"
             fi
         done <<< "$mappings_output"
     fi
