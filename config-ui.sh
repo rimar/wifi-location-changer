@@ -26,8 +26,48 @@ print_header() {
 
 # Function to get current SSID
 get_current_ssid() {
-    local ssid=$(system_profiler SPAirPortDataType 2>/dev/null | awk '/Current Network/ {getline; gsub(":", ""); print; exit}' | xargs)
-    echo "${ssid:-Unknown}"
+    local os_version=$(sw_vers -productVersion | cut -d. -f1)
+    local ssid=""
+    
+    # For macOS 26.0+, try multiple methods due to privacy restrictions
+    if [ "$os_version" -ge "26" ]; then
+        # Method 1: Try shortcuts if available (requires user to create shortcut)
+        if command -v shortcuts >/dev/null 2>&1; then
+            ssid=$(shortcuts run "Current Wi-Fi" 2>/dev/null | tr -d '\r' | sed 's/^\s*//;s/\s*$//')
+            if [ -n "$ssid" ] && [ "$ssid" != "null" ] && [ "$ssid" != "<redacted>" ]; then
+                echo "$ssid"
+                return 0
+            fi
+        fi
+        
+        # Method 2: Try networksetup with different approaches
+        ssid=$(networksetup -getairportnetwork en0 2>/dev/null | sed 's/Current Wi-Fi Network: //' | grep -v "You are not associated")
+        if [ -n "$ssid" ] && [ "$ssid" != "You are not associated with an AirPort network." ]; then
+            echo "$ssid"
+            return 0
+        fi
+        
+        # Method 3: Check if we can get SSID from system preferences (may require admin)
+        ssid=$(defaults read /Library/Preferences/SystemConfiguration/com.apple.airport.preferences 2>/dev/null | grep -A 1 "SSID_STR" | tail -1 | sed 's/.*= "\(.*\)";/\1/' 2>/dev/null)
+        if [ -n "$ssid" ] && [ "$ssid" != "<redacted>" ]; then
+            echo "$ssid"
+            return 0
+        fi
+        
+        # Method 4: Try system_profiler but handle redacted case
+        ssid=$(system_profiler SPAirPortDataType 2>/dev/null | awk '/Current Network/ {getline; gsub(":", ""); gsub(/^[[:space:]]*/, ""); gsub(/[[:space:]]*$/, ""); print; exit}')
+        if [ -n "$ssid" ] && [ "$ssid" != "<redacted>" ]; then
+            echo "$ssid"
+            return 0
+        fi
+        
+        # If all methods fail on macOS 26.0+, return a helpful message
+        echo "<Unable to detect - Privacy Protected>"
+    else
+        # Legacy method for older macOS versions
+        ssid=$(system_profiler SPAirPortDataType 2>/dev/null | awk '/Current Network/ {getline; gsub(":", ""); print; exit}' | xargs)
+        echo "${ssid:-Unknown}"
+    fi
 }
 
 # Function to get available locations
@@ -90,12 +130,22 @@ EOF
 show_status() {
     local current_ssid=$(get_current_ssid)
     local mapping_count=$(load_mappings | wc -l | xargs)
+    local os_version=$(sw_vers -productVersion | cut -d. -f1)
     
     echo -e "${YELLOW}Current Status:${NC}"
     echo -e "┌─────────────────────────────────────────────────────────────┐"
     printf "│ Current Wi-Fi:                    %-20s │\n" "$current_ssid"
     printf "│ Mappings:                               %-2s                │\n" "$mapping_count"
     echo -e "└─────────────────────────────────────────────────────────────┘"
+    
+    # Show privacy notice for macOS 26.0+
+    if [ "$os_version" -ge "26" ] && [[ "$current_ssid" == *"Privacy Protected"* || "$current_ssid" == "<redacted>" ]]; then
+        echo -e "${YELLOW}Note:${NC} macOS 26.0+ has enhanced privacy protections."
+        echo -e "      To get SSID detection working:"
+        echo -e "      1. Create a Shortcuts app shortcut named 'Current Wi-Fi'"
+        echo -e "      2. Or manually enter your SSID mappings below"
+        echo
+    fi
     echo
 }
 

@@ -9,47 +9,73 @@ SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 
 OS_VERSION=$(sw_vers -productVersion | cut -d. -f1)
 
-get_ssid_via_shortcut() {
-    local tmp output status
+get_ssid_comprehensive() {
+    local os_version=$(sw_vers -productVersion | cut -d. -f1)
+    local ssid=""
     
-    if ! command -v shortcuts >/dev/null 2>&1; then
-        echo "$(date) Shortcuts CLI not found; falling back to legacy methods"
-        return 1
-    fi
-    
-    tmp=$(mktemp 2>/dev/null)
-    if [ -z "$tmp" ]; then
-        echo "$(date) Failed to create temporary file for shortcut output"
-        return 1
-    fi
-    
-    if shortcuts run "Current Wi-Fi" --output-type public.plain-text --output-path "$tmp" >/dev/null 2>&1; then
-        output=$(tr -d '\r' < "$tmp" | sed 's/^\s*//;s/\s*$//')
-        rm -f "$tmp"
-        if [ -n "$output" ]; then
-            echo "$output"
+    # For macOS 26.0+, try multiple methods due to privacy restrictions
+    if [ "$os_version" -ge "26" ]; then
+        echo "$(date) macOS $os_version detected, using comprehensive SSID detection"
+        
+        # Method 1: Try shortcuts if available
+        if command -v shortcuts >/dev/null 2>&1; then
+            echo "$(date) Trying Shortcuts method..."
+            ssid=$(shortcuts run "Current Wi-Fi" 2>/dev/null | tr -d '\r' | sed 's/^\s*//;s/\s*$//')
+            if [ -n "$ssid" ] && [ "$ssid" != "null" ] && [ "$ssid" != "<redacted>" ]; then
+                echo "$(date) SSID found via Shortcuts: $ssid"
+                echo "$ssid"
+                return 0
+            fi
+            echo "$(date) Shortcuts method failed or returned redacted/null"
+        fi
+        
+        # Method 2: Try networksetup
+        echo "$(date) Trying networksetup method..."
+        ssid=$(networksetup -getairportnetwork en0 2>/dev/null | sed 's/Current Wi-Fi Network: //' | grep -v "You are not associated")
+        if [ -n "$ssid" ] && [ "$ssid" != "You are not associated with an AirPort network." ]; then
+            echo "$(date) SSID found via networksetup: $ssid"
+            echo "$ssid"
             return 0
         fi
-        echo "$(date) Shortcut returned an empty SSID; falling back to legacy methods"
+        echo "$(date) networksetup method failed"
+        
+        # Method 3: Try system preferences (may require admin)
+        echo "$(date) Trying system preferences method..."
+        ssid=$(defaults read /Library/Preferences/SystemConfiguration/com.apple.airport.preferences 2>/dev/null | grep -A 1 "SSID_STR" | tail -1 | sed 's/.*= "\(.*\)";/\1/' 2>/dev/null)
+        if [ -n "$ssid" ] && [ "$ssid" != "<redacted>" ]; then
+            echo "$(date) SSID found via system preferences: $ssid"
+            echo "$ssid"
+            return 0
+        fi
+        echo "$(date) System preferences method failed"
+        
+        # Method 4: Try system_profiler (likely to be redacted but worth trying)
+        echo "$(date) Trying system_profiler method..."
+        ssid=$(system_profiler SPAirPortDataType 2>/dev/null | awk '/Current Network/ {getline; gsub(":", ""); gsub(/^[[:space:]]*/, ""); gsub(/[[:space:]]*$/, ""); print; exit}')
+        if [ -n "$ssid" ] && [ "$ssid" != "<redacted>" ]; then
+            echo "$(date) SSID found via system_profiler: $ssid"
+            echo "$ssid"
+            return 0
+        fi
+        echo "$(date) system_profiler method failed or returned redacted"
+        
+        echo "$(date) All SSID detection methods failed on macOS 26.0+ - privacy restrictions may be blocking access"
+        return 1
     else
-        status=$?
-        rm -f "$tmp"
-        echo "$(date) Failed to run shortcut \"Current Wi-Fi\" (exit $status). Run it once manually to grant permissions."
+        # Legacy method for older macOS versions
+        echo "$(date) Using legacy SSID detection for macOS $os_version"
+        ssid=$(system_profiler SPAirPortDataType 2>/dev/null | awk '/Current Network/ {getline; gsub(":", ""); print; exit}' | xargs)
+        if [ -n "$ssid" ]; then
+            echo "$(date) SSID found via legacy method: $ssid"
+            echo "$ssid"
+            return 0
+        fi
+        echo "$(date) Legacy SSID detection failed"
+        return 1
     fi
-    
-    return 1
 }
 
-if [ "$OS_VERSION" -ge "26" ]; then
-    SSID=$(get_ssid_via_shortcut)
-    if [ $? -ne 0 ] || [ -z "$SSID" ]; then
-        SSID=$(system_profiler SPAirPortDataType | awk '/Current Network/ {getline;$1=$1; gsub(":",""); print;exit}')
-    fi
-elif [ "$OS_VERSION" -ge "15" ]; then
-    SSID=$(system_profiler SPAirPortDataType | awk '/Current Network/ {getline;$1=$1; gsub(":",""); print;exit}')
-else
-    SSID=$(/System/Library/PrivateFrameworks/Apple80211.framework/Versions/A/Resources/airport -I | awk -F ' SSID: ' '/ SSID:/ {print $2}')
-fi
+SSID=$(get_ssid_comprehensive)
 echo `date` "New SSID found: $SSID"
 
 LOCATION=

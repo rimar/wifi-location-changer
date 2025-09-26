@@ -5,10 +5,13 @@ set -eu
 chmod +x locationchanger
 chmod +x locationchanger-helper
 sudo mkdir -p /usr/local/bin
+sudo mkdir -p /usr/local/var/log
 sudo cp -a locationchanger /usr/local/bin
 sudo cp -a locationchanger-helper /usr/local/bin
 sudo chown root /usr/local/bin/locationchanger-helper
 sudo chmod 500 /usr/local/bin/locationchanger-helper
+sudo chown root:wheel /usr/local/var/log
+sudo chmod 755 /usr/local/var/log
 cp LocationChanger.plist ~/Library/LaunchAgents/
 
 # remove older service if found
