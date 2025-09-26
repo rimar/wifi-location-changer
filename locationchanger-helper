@@ -1,0 +1,22 @@
+#!/bin/bash
+
+# Secure helper script for location switching
+# This script only allows switching network locations via networksetup
+# and is designed to be called with sudo privileges
+
+if [ $# -ne 1 ]; then
+    echo "Usage: $0 <location_name>"
+    exit 1
+fi
+
+LOCATION="$1"
+
+# Validate that the location name contains only safe characters
+if [[ ! "$LOCATION" =~ ^[a-zA-Z0-9\ _-]+$ ]]; then
+    echo "Error: Invalid location name format"
+    exit 1
+fi
+
+# Change network location
+/usr/sbin/networksetup -switchtolocation "$LOCATION"
+exit $?

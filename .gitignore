@@ -1,2 +1,44 @@
+# Configuration files (user-specific)
 locationchanger.callout.sh
 locationchanger.conf
+locationchanger.conf.backup
+
+# Build artifacts and temporary files
+build/
+*.tmp
+*.temp
+/tmp/locationchanger.conf.tmp
+
+# macOS system files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Log files
+*.log
+/usr/local/var/log/locationchanger.log
+
+# Xcode build files
+*.xcodeproj/xcuserdata/
+*.xcworkspace/xcuserdata/
+DerivedData/
+build/
+
+# Swift Package Manager
+.swiftpm/
+Package.resolved
+
+# Backup files
+*.bak
+*.backup
