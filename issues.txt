@@ -1,0 +1,133 @@
+Issue #1:
+
+SSID cannot be obtained on macOS Tahoe 26.0 #51
+Open
+@felitsa
+Description
+felitsa
+opened last week
+My MacBook Air M3 has just been updated to macOS Tahoe 26.0, however locationchanger is not working properly. Only the following line was found in the logs: "Wed Sep 17 15:15:04 CST 2025 New SSID found: ".
+
+Activity
+felitsa
+felitsa commented last week
+felitsa
+last week
+Author
+Wed Sep 17 15:15:04 CST 2025 New SSID found:
+
+not-first
+not-first commented last week
+not-first
+last week
+I am having the same issue. However, I realised something.
+
+The same functionality can be created in the new shortcuts app:
+
+Create a new automation, with joining of wifi network(s) as a trigger
+Make it execute a shell script scselect network-name-here to switch to that network
+I am not very sure on how robust this solution is or its benefits/weaknesses compared to this program. It is a replacement for wifi-location-change, whether it be in the short or long term.
+
+emrikol
+emrikol commented 2 days ago
+emrikol
+2 days ago
+tl;dr:
+
+$ tmp=$(mktemp)
+shortcuts run "Current Wi-Fi" --output-type public.plain-text --output-path "$tmp"
+ssid=$(cat "$tmp")
+rm -f "$tmp"
+echo "$ssid"
+
+CurrentWiFiSSIDName
+For my personal version of locationchanger I ended up using Shortcuts to get the SSID:
+
+get_ssid_via_shortcut() {
+    local tmp output status
+
+    if ! command -v shortcuts >/dev/null 2>&1; then
+        echo "$(date) Shortcuts CLI not found; skipping shortcut-based SSID lookup"
+        return 1
+    fi
+
+    if ! shortcut_exists; then
+        echo "$(date) Shortcut \"$shortcut_name\" is not installed. Run '$0 install-shortcut' to add it."
+        return 1
+    fi
+
+    tmp=$(mktemp 2>/dev/null)
+    if [ -z "$tmp" ]; then
+        echo "$(date) Failed to create temporary file for shortcut output"
+        return 1
+    fi
+
+    if shortcuts run "$shortcut_name" --output-type public.plain-text --output-path "$tmp" >/dev/null 2>&1; then
+        output=$(tr -d '\r' < "$tmp" | sed 's/^\s*//;s/\s*$//')
+        rm -f "$tmp"
+        if [ -n "$output" ]; then
+            SSID="$output"
+            echo "$(date) SSID obtained from Shortcuts: $SSID"
+            return 0
+        fi
+        echo "$(date) Shortcut returned an empty SSID; falling back to legacy methods"
+    else
+        status=$?
+        rm -f "$tmp"
+        echo "$(date) Failed to run shortcut \"$shortcut_name\" (exit $status). Run it once manually to grant permissions."
+    fi
+
+    return 1
+}
+Image
+
+Issue #2:
+Instructions in README are incorrect and EXTREMELY DANGEROUS #50
+Open
+Open
+Instructions in README are incorrect and EXTREMELY DANGEROUS
+#50
+@maxall41
+Description
+maxall41
+opened on Aug 11 · edited by maxall41
+The "MacOS Ventura fallback to Automatic location issue" section in the readme creates a privilege escalation vulnerability that essentially allows a non admin user to execute admin level commands without a password as the permissions for the locationchanger script are not updated meaning an attacker can modify the script to execute malicious commands.
+
+Furthermore the text in the "MacOS Ventura fallback to Automatic location issue" implies that this is only required when switching to the "Automatic" location, but in fact this is required for changing to any location.
+
+A much safer way to fix this issue is to do the following:
+
+Create a new script /usr/local/bin/locationchanger-helper and add the following:
+#!/bin/bash
+/usr/sbin/networksetup -switchtolocation "$1"
+Set correct permissions for locationchanger-helper and make it executable:
+sudo chmod +x /usr/local/bin/locationchanger-helper
+sudo chown root /usr/local/bin/locationchanger-helper
+sudo chmod 500 /usr/local/bin/locationchanger-helper
+Add the following line to the sudoers file:
+your_user_name ALL=(ALL) NOPASSWD: /usr/local/bin/locationchanger-helper
+Update the locationchanger script by replacing:
+if ! networksetup -switchtolocation "$LOCATION"; then
+with
+
+if ! sudo /usr/local/bin/locationchanger-helper "$LOCATION"; then
+
+Issue #3:
+Changing location requires admin permissions #49
+Open
+@gigaSproule
+Description
+gigaSproule
+opened on Aug 4
+When I installed the script, it fails to run with the error ** Error: Command requires admin privileges. when trying to run the networksetup -switchtolocation command. The README states that elevated priviliges is only required for the automatic fallback, but it seems like it is needed for non-automatic switching as well.
+
+I tried running networksetup -switchtolocation Home on its own, but it had the same issue. I'm not sure if this is a change in MacOS or something that was just missed from the README.
+
+Mac OS version: Sequoia 15.5
+
+Activity
+maxall41
+maxall41 commented on Aug 11
+maxall41
+on Aug 11
+Ran into the same issue. See #50
