@@ -1,6 +1,8 @@
 #!/bin/bash
 
 mkdir -p /usr/local/var/log
+touch /usr/local/var/log/locationchanger.log 2>/dev/null || sudo touch /usr/local/var/log/locationchanger.log
+chmod 666 /usr/local/var/log/locationchanger.log 2>/dev/null || sudo chmod 666 /usr/local/var/log/locationchanger.log
 exec &>/usr/local/var/log/locationchanger.log
 
 sleep 2
@@ -15,62 +17,62 @@ get_ssid_comprehensive() {
     
     # For macOS 26.0+, try multiple methods due to privacy restrictions
     if [ "$os_version" -ge "26" ]; then
-        echo "$(date) macOS $os_version detected, using comprehensive SSID detection"
+        echo "$(date) macOS $os_version detected, using comprehensive SSID detection" >&2
         
         # Method 1: Try shortcuts if available
         if command -v shortcuts >/dev/null 2>&1; then
-            echo "$(date) Trying Shortcuts method..."
+            echo "$(date) Trying Shortcuts method..." >&2
             ssid=$(shortcuts run "Current Wi-Fi" 2>/dev/null | tr -d '\r' | sed 's/^\s*//;s/\s*$//')
             if [ -n "$ssid" ] && [ "$ssid" != "null" ] && [ "$ssid" != "<redacted>" ]; then
-                echo "$(date) SSID found via Shortcuts: $ssid"
+                echo "$(date) SSID found via Shortcuts: $ssid" >&2
                 echo "$ssid"
                 return 0
             fi
-            echo "$(date) Shortcuts method failed or returned redacted/null"
+            echo "$(date) Shortcuts method failed or returned redacted/null" >&2
         fi
         
         # Method 2: Try networksetup
-        echo "$(date) Trying networksetup method..."
+        echo "$(date) Trying networksetup method..." >&2
         ssid=$(networksetup -getairportnetwork en0 2>/dev/null | sed 's/Current Wi-Fi Network: //' | grep -v "You are not associated")
         if [ -n "$ssid" ] && [ "$ssid" != "You are not associated with an AirPort network." ]; then
-            echo "$(date) SSID found via networksetup: $ssid"
+            echo "$(date) SSID found via networksetup: $ssid" >&2
             echo "$ssid"
             return 0
         fi
-        echo "$(date) networksetup method failed"
+        echo "$(date) networksetup method failed" >&2
         
         # Method 3: Try system preferences (may require admin)
-        echo "$(date) Trying system preferences method..."
+        echo "$(date) Trying system preferences method..." >&2
         ssid=$(defaults read /Library/Preferences/SystemConfiguration/com.apple.airport.preferences 2>/dev/null | grep -A 1 "SSID_STR" | tail -1 | sed 's/.*= "\(.*\)";/\1/' 2>/dev/null)
         if [ -n "$ssid" ] && [ "$ssid" != "<redacted>" ]; then
-            echo "$(date) SSID found via system preferences: $ssid"
+            echo "$(date) SSID found via system preferences: $ssid" >&2
             echo "$ssid"
             return 0
         fi
-        echo "$(date) System preferences method failed"
+        echo "$(date) System preferences method failed" >&2
         
         # Method 4: Try system_profiler (likely to be redacted but worth trying)
-        echo "$(date) Trying system_profiler method..."
+        echo "$(date) Trying system_profiler method..." >&2
         ssid=$(system_profiler SPAirPortDataType 2>/dev/null | awk '/Current Network/ {getline; gsub(":", ""); gsub(/^[[:space:]]*/, ""); gsub(/[[:space:]]*$/, ""); print; exit}')
         if [ -n "$ssid" ] && [ "$ssid" != "<redacted>" ]; then
-            echo "$(date) SSID found via system_profiler: $ssid"
+            echo "$(date) SSID found via system_profiler: $ssid" >&2
             echo "$ssid"
             return 0
         fi
-        echo "$(date) system_profiler method failed or returned redacted"
+        echo "$(date) system_profiler method failed or returned redacted" >&2
         
-        echo "$(date) All SSID detection methods failed on macOS 26.0+ - privacy restrictions may be blocking access"
+        echo "$(date) All SSID detection methods failed on macOS 26.0+ - privacy restrictions may be blocking access" >&2
         return 1
     else
         # Legacy method for older macOS versions
-        echo "$(date) Using legacy SSID detection for macOS $os_version"
+        echo "$(date) Using legacy SSID detection for macOS $os_version" >&2
         ssid=$(system_profiler SPAirPortDataType 2>/dev/null | awk '/Current Network/ {getline; gsub(":", ""); print; exit}' | xargs)
         if [ -n "$ssid" ]; then
-            echo "$(date) SSID found via legacy method: $ssid"
+            echo "$(date) SSID found via legacy method: $ssid" >&2
             echo "$ssid"
             return 0
         fi
-        echo "$(date) Legacy SSID detection failed"
+        echo "$(date) Legacy SSID detection failed" >&2
         return 1
     fi
 }
@@ -96,22 +98,30 @@ esac
 REASON="SSID changed to $SSID"
 
 MAP_FILE=$SCRIPT_DIR/locationchanger.conf
+echo "Looking for config file: $MAP_FILE"
 if [ -f "$MAP_FILE" ]; then
+  echo "Config file found, reading mappings..."
   while IFS=' ' read -r loc wifi
   do
 		if [[ "${loc}" == "#"*   ]]; then
+			echo "Skipping comment: $loc $wifi"
 			true
 		elif [ -z "${loc}" ]; then
+      echo "Skipping empty line"
       true
 		else
 			wifi=$(echo $wifi | tr -d '"' )
+			echo "Checking mapping: '$loc' -> '$wifi' against SSID '$SSID'"
 			if [[ "$wifi" == "$SSID" ]]; then
 					LOCATION="$loc"
 					REASON="SSID changed to $SSID using mapping file"
+					echo "Found match! Setting location to: $LOCATION"
 					break
 			fi
 		fi
   done < "$MAP_FILE"
+else
+  echo "Config file not found at: $MAP_FILE"
 fi
 
 if [ -z "$LOCATION" ]; then
@@ -120,7 +130,11 @@ if [ -z "$LOCATION" ]; then
 fi
 
 current_location=$(networksetup -getcurrentlocation)
+echo "Current location: $current_location"
+echo "Target location: $LOCATION"
+echo "Reason: $REASON"
 if [ "$current_location" = "$LOCATION" ]; then
+    echo "Location already correct, exiting"
     exit
 fi
 
