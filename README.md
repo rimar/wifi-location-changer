@@ -153,7 +153,15 @@ sudo visudo
 ### macOS Tahoe 26.0+ Support
 This version includes support for macOS Tahoe 26.0+ by using the Shortcuts app to detect Wi-Fi SSIDs when traditional methods fail. The script automatically falls back to legacy methods if Shortcuts is not available.
 
-**Note:** macOS 26.0+ has enhanced privacy protections that may prevent automatic SSID detection. If you see "Privacy Protected" or "<redacted>" in the configuration tool, you can still manually configure SSID mappings. For automatic detection, create a Shortcuts app shortcut named "Current Wi-Fi" with a "Get Network Details" action set to "Wi-Fi Name".
+**Note:** macOS 26.0+ has enhanced privacy protections that may prevent automatic SSID detection. If you see `Privacy Protected` or `<redacted>` in the configuration tool, you can still manually configure SSID mappings. For automatic detection, create a Shortcuts app shortcut named "Current Wi-Fi".
+
+### How To Create "Current WiFi" Shortcut:
+
+Open the *Shortcuts* app → click **+** to add a new shortcut → in the right pane select *Device* → drag **Get Network Details** to the left pane → then go to the *Scripting* section, find **Stop and Output**, and drag it below → run it with the *Play* button (you should see your current Wi-Fi name) → name the shortcut **Current WiFi** (at the top of the window) → close the window and the app.
+
+Should look like this:
+<img width="2446" height="1624" alt="Shortcuts App New shortcut 3" src="https://github.com/user-attachments/assets/9eae481c-4881-478b-a9a2-86c0363a955e" />
+
 
 ### Secure Location Switching
 Starting with macOS Sequoia 15.5+, changing network locations requires admin privileges. This project uses a secure helper script approach to minimize security risks.
@@ -170,6 +178,8 @@ If no SSID mapping is found in the configuration file, the script automatically 
 ## Configuration UI
 
 A comprehensive command-line configuration tool is available for easy management of LocationChanger.
+
+<img width="1070" height="1036" alt="Bash Configuration UI" src="https://github.com/user-attachments/assets/4e88c5bf-932a-4c91-8584-a9842a7a2a24" />
 
 ### Using the Configuration Tool
 
