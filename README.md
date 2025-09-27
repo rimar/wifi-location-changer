@@ -155,7 +155,7 @@ This version includes support for macOS Tahoe 26.0+ by using the Shortcuts app t
 
 **Note:** macOS 26.0+ has enhanced privacy protections that may prevent automatic SSID detection. If you see `Privacy Protected` or `<redacted>` in the configuration tool, you can still manually configure SSID mappings. For automatic detection, create a Shortcuts app shortcut named "Current Wi-Fi".
 
-### How To Create "Current WiFi" Shortcut:
+### How To Create "Current Wi-Fi" Shortcut:
 
 Open the *Shortcuts* app → click **+** to add a new shortcut → in the right pane select *Device* → drag **Get Network Details** to the left pane → then go to the *Scripting* section, find **Stop and Output**, and drag it below → run it with the *Play* button (you should see your current Wi-Fi name) → name the shortcut **Current WiFi** (at the top of the window) → close the window and the app.
 
