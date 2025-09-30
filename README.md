@@ -150,10 +150,10 @@ sudo visudo
 
 ## macOS Compatibility and Security
 
-### macOS Tahoe 26.0+ Support
-This version includes support for macOS Tahoe 26.0+ by using the Shortcuts app to detect Wi-Fi SSIDs when traditional methods fail. The script automatically falls back to legacy methods if Shortcuts is not available.
+### macOS Sequoia 15.0+ Support
+This version includes support for macOS Sequoia 15.0+ by using the Shortcuts app to detect Wi-Fi SSIDs when traditional methods fail. The script automatically falls back to legacy methods if Shortcuts is not available.
 
-**Note:** macOS 26.0+ has enhanced privacy protections that may prevent automatic SSID detection. If you see `Privacy Protected` or `<redacted>` in the configuration tool, you can still manually configure SSID mappings. For automatic detection, create a Shortcuts app shortcut named "Current Wi-Fi".
+**Note:** macOS 15.0+ has enhanced privacy protections that may prevent automatic SSID detection. If you see `Privacy Protected` or `<redacted>` in the configuration tool, you can still manually configure SSID mappings. For automatic detection, create a Shortcuts app shortcut named "Current Wi-Fi".
 
 ### How To Create "Current Wi-Fi" Shortcut:
 

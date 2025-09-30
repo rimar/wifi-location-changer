@@ -15,8 +15,8 @@ get_ssid_comprehensive() {
     local os_version=$(sw_vers -productVersion | cut -d. -f1)
     local ssid=""
     
-    # For macOS 26.0+, try multiple methods due to privacy restrictions
-    if [ "$os_version" -ge "26" ]; then
+    # For macOS 15.0+, try multiple methods due to privacy restrictions
+    if [ "$os_version" -ge "15" ]; then
         echo "$(date) macOS $os_version detected, using comprehensive SSID detection" >&2
         
         # Method 1: Try shortcuts if available
@@ -61,7 +61,7 @@ get_ssid_comprehensive() {
         fi
         echo "$(date) system_profiler method failed or returned redacted" >&2
         
-        echo "$(date) All SSID detection methods failed on macOS 26.0+ - privacy restrictions may be blocking access" >&2
+        echo "$(date) All SSID detection methods failed on macOS 15.0+ - privacy restrictions may be blocking access" >&2
         return 1
     else
         # Legacy method for older macOS versions
