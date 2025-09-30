@@ -179,7 +179,7 @@ If no SSID mapping is found in the configuration file, the script automatically 
 
 A comprehensive command-line configuration tool is available for easy management of LocationChanger.
 
-<img width="1070" height="1036" alt="Bash Configuration UI" src="https://github.com/user-attachments/assets/4e88c5bf-932a-4c91-8584-a9842a7a2a24" />
+<img width="1066" height="862" alt="Bash Configuration UI" src="https://github.com/user-attachments/assets/9d32b9bb-62c0-4978-8b90-605222bc993c" />
 
 ### Using the Configuration Tool
 
